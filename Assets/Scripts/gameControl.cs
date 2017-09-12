@@ -268,13 +268,13 @@ public class gameControl : MonoBehaviour {
     {
         float newSleepyBarWidth = (sleepyPercent / 100) * levelFGMaxWidth;
         float newAngryBarWidth = (angryPercent / 100) * levelFGMaxWidth;
-        GUI.BeginGroup(new Rect(120, 140, levelBG.width, levelBG.height));
+        GUI.BeginGroup(new Rect(120, 60, levelBG.width, levelBG.height));
         GUI.DrawTexture(new Rect(0, 0, levelBG.width, levelBG.height), levelBG);
         GUI.BeginGroup(new Rect(5, 6, newSleepyBarWidth, levelFG.height));
         GUI.DrawTexture(new Rect(0, 0, levelFG.width, levelFG.height), levelFG);
         GUI.EndGroup();
         GUI.EndGroup();
-        GUI.BeginGroup(new Rect(120, 140 + levelBG.height, levelBG.width, levelBG.height));
+        GUI.BeginGroup(new Rect(120, 60 + levelBG.height, levelBG.width, levelBG.height));
         GUI.DrawTexture(new Rect(0, 0, levelBG.width, levelBG.height), levelBG);
         GUI.BeginGroup(new Rect(5, 6, newAngryBarWidth, levelFG.height));
         GUI.DrawTexture(new Rect(0, 0, levelFG.width, levelFG.height), levelFG);
