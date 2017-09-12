@@ -186,9 +186,16 @@ public class actionCardControl : MonoBehaviour {
         k = 0;
         //每次结束回合后，令可使用的动作卡数等于当前战场上的角色卡数
         canUseActionCardAmount = gameControl.j;
-
+        //当角色卡区域被置满角色卡后，则无法再打出角色卡
+        if (gameControl.j > 4)
+        {
+            gameControl.canUseRoleCard = false;
+        }
+        else
+        {
+            gameControl.canUseRoleCard = true;
+        }
         gameControl.canUseActionCard = true;
-        gameControl.canUseRoleCard = true;
     }
 
     void UpdateShow()

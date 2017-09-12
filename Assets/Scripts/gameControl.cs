@@ -104,6 +104,7 @@ public class gameControl : MonoBehaviour {
             loseOrNot = true;
 
         }
+        
     }
 
     private void BuildDeck()
@@ -129,9 +130,15 @@ public class gameControl : MonoBehaviour {
         actionCardControl.k = 0;
         //每次结束回合后，令可使用的动作卡数等于当前战场上的角色卡数
         actionCardControl.canUseActionCardAmount = j;
-
+        //当角色卡区域被置满角色卡后，则无法再打出角色卡
+        if (j > 4)
+        {
+            canUseRoleCard = false;
+        }
+        else {
+            canUseRoleCard = true;
+        }
         canUseActionCard = true;
-        canUseRoleCard = true;
     }
 
     public void AddRoleCard() {
@@ -215,10 +222,11 @@ public class gameControl : MonoBehaviour {
         RaycastHit hit; //声明一个碰撞的点(暂且理解为碰撞的交点)
         if (Physics.Raycast(ray, out hit)) //如果真的发生了碰撞，ray这条射线在hit点与别的物体碰撞了
         {
-            //如果碰撞物不带有四种动作卡的标签，则将碰撞物的材质、标签依次赋予作为角色卡场地的预制件
+            //如果碰撞物不带有四种动作卡及Untagged的标签且角色卡处于能使用的情况下，
+            //则将碰撞物的材质、标签依次赋予作为角色卡场地的预制件
             if (hit.collider.gameObject.tag != "abandon" && hit.collider.gameObject.tag != "coquetry"
                 && hit.collider.gameObject.tag != "noisy" && hit.collider.gameObject.tag != "pull"
-                && hit.collider.gameObject.tag != "Untagged") {
+                && hit.collider.gameObject.tag != "Untagged" && canUseRoleCard) {
                 //当回合中使用了角色卡后就不可以在使用动作卡了
                 canUseActionCard = false;
                 //当角色卡能使用时才会执行下面的代码

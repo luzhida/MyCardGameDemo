@@ -16,6 +16,10 @@ public class actionFieldResponse : MonoBehaviour {
     public List<Material> actionCardMaterials = new List<Material>();
     public GameObject enemy;
     public Material J;//J角色卡的材质，因为J的特殊技能为代替沉睡者
+    private bool updateRoleField;//判断是否有某个角色卡从游戏中被除外
+    public List<GameObject> roleFields = new List<GameObject>();//作为角色卡区域的游戏物体
+    private int i;//角色卡区域游戏物体的List集合的下标
+
     // Use this for initialization
     void Start () {
 
@@ -24,7 +28,10 @@ public class actionFieldResponse : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         actionCardResponse();
-        
+        if (updateRoleField)
+        {
+            updateRoleFields();
+        }
     }
 
     void actionCardResponse() {
@@ -184,6 +191,8 @@ public class actionFieldResponse : MonoBehaviour {
                 role.tag = "Untagged";
                 gameControl.sleepyLevelRemaining = 50;
                 gameControl.angryLevelRemaining = 50;
+                gameControl.j--;
+                updateRoleField = true;
                 break;
             case "K.同学":
                 gameControl.sleepyLevelRemaining += 3;
@@ -208,6 +217,8 @@ public class actionFieldResponse : MonoBehaviour {
                 //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
                 role.GetComponent<Renderer>().material = initialMaterial;
                 role.tag = "Untagged";
+                gameControl.j--;
+                updateRoleField = true;
                 break;
             case "B.同学":
                 gameControl.sleepyLevelRemaining -= 5;
@@ -274,6 +285,8 @@ public class actionFieldResponse : MonoBehaviour {
                     //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
                     role.GetComponent<Renderer>().material = initialMaterial;
                     role.tag = "Untagged";
+                    gameControl.j--;
+                    updateRoleField = true;
                 }
                 break;
             case "I.基友":
@@ -480,5 +493,22 @@ public class actionFieldResponse : MonoBehaviour {
 
     void makeSense() {
         gameControl.angryLevelRemaining -= 8;
+    }
+
+    //在游戏过程中某角色卡被移除出战场后，进行位置的更新
+    void updateRoleFields()
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            while (roleFields[i].tag == "Untagged")
+            {
+                for (int j = i; j < 5; j++)
+                {
+                    roleFields[j].GetComponent<Renderer>().material = roleFields[j + 1].GetComponent<Renderer>().material;
+                    roleFields[j].tag = roleFields[j + 1].tag;
+                }
+            }
+            updateRoleField = false;
+        }
     }
 }
