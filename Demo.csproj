@@ -93,6 +93,7 @@
     <Compile Include="Assets\Scripts\actionFieldResponse.cs" />
     <Compile Include="Assets\Scripts\actionInformation.cs" />
     <Compile Include="Assets\Scripts\gameControl.cs" />
+    <Compile Include="Assets\Scripts\information.cs" />
     <Compile Include="Assets\Scripts\roleFieldResponse.cs" />
     <Compile Include="Assets\Scripts\roleInformation.cs" />
     <Compile Include="Assets\Scripts\rule.cs" />

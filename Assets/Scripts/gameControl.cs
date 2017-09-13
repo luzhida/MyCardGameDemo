@@ -41,8 +41,12 @@ public class gameControl : MonoBehaviour {
     public static bool canUseRoleCard = true;//判断是否能使用角色卡
     private bool winOrNot = false;//判断是否胜利
     private bool loseOrNot = false;//判断是否输了
+    private float halfScreenW;//屏幕的一半宽
+    private float halfScreenH;//屏幕的一半高
 
     void Start () {
+        halfScreenH = Screen.height / 2;
+        halfScreenW = Screen.width / 2;
         angryLevelRemaining = startAngryLevel;//将初始沉睡度赋给变化沉睡度
         sleepyLevelRemaining = startSleepyLevel;//将初始愤怒值赋给变化愤怒值
         levelFGMaxWidth = levelFG.width;//让显示的百分比条等于他的最大值
@@ -268,13 +272,13 @@ public class gameControl : MonoBehaviour {
     {
         float newSleepyBarWidth = (sleepyPercent / 100) * levelFGMaxWidth;
         float newAngryBarWidth = (angryPercent / 100) * levelFGMaxWidth;
-        GUI.BeginGroup(new Rect(120, 60, levelBG.width, levelBG.height));
+        GUI.BeginGroup(new Rect(halfScreenW-560 , halfScreenH-240, levelBG.width, levelBG.height));
         GUI.DrawTexture(new Rect(0, 0, levelBG.width, levelBG.height), levelBG);
         GUI.BeginGroup(new Rect(5, 6, newSleepyBarWidth, levelFG.height));
         GUI.DrawTexture(new Rect(0, 0, levelFG.width, levelFG.height), levelFG);
         GUI.EndGroup();
         GUI.EndGroup();
-        GUI.BeginGroup(new Rect(120, 60 + levelBG.height, levelBG.width, levelBG.height));
+        GUI.BeginGroup(new Rect(halfScreenW-560 , halfScreenH-240 + levelBG.height, levelBG.width, levelBG.height));
         GUI.DrawTexture(new Rect(0, 0, levelBG.width, levelBG.height), levelBG);
         GUI.BeginGroup(new Rect(5, 6, newAngryBarWidth, levelFG.height));
         GUI.DrawTexture(new Rect(0, 0, levelFG.width, levelFG.height), levelFG);

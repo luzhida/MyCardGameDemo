@@ -5,10 +5,14 @@ using UnityEngine.UI;
 
 public class rule : MonoBehaviour {
     Text introductionOfRule;//规则说明文本
+    private float halfScreenW;//屏幕的一半宽
+    private float halfScreenH;//屏幕的一半高
 
-	// Use this for initialization
-	void Start () {
-		introductionOfRule = GameObject.Find("Canvas/rule").GetComponent<Text>();
+    // Use this for initialization
+    void Start () {
+        halfScreenW = Screen.width / 2;
+        halfScreenH = Screen.height / 2;
+        introductionOfRule = GameObject.Find("Canvas/rule").GetComponent<Text>();
         introductionOfRule.text = "《起床大作战》为一款卡牌闯关类游戏。卡牌分为角色卡12种，分别为602寝室的12位不同成员。" +
             "动作卡分为4种，分别为：吵闹、硬拽、撒娇、放弃。" +
             "\n游戏初始状态为玩家统一持有两种由12张角色卡以及12组4种动作卡共计60张卡的卡组。游戏开始时，将会随机将四张角" +
@@ -41,7 +45,7 @@ public class rule : MonoBehaviour {
     private void OnGUI()
     {
         //进入游戏的按钮
-        if (GUI.Button(new Rect(600, 520, 100, 50), "进入游戏"))
+        if (GUI.Button(new Rect(halfScreenW-50, halfScreenH+200, 100, 50), "进入游戏"))
         {
             Application.LoadLevel("game");
         }
