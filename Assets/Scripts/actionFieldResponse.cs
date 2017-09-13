@@ -37,7 +37,7 @@ public class actionFieldResponse : MonoBehaviour {
     void actionCardResponse() {
         if (actionCardCanResponse) {
             //当动作卡置入战场改变动作卡区域的标签后，通过判断动作卡区域的标签，
-            //再判断其上方动作卡区域的标签，来实行不同的相应动作，还未完成，暂做测试用
+            //再判断其上方动作卡区域的标签，来实行不同的相应动作
             //执行打出放弃动作卡时的响应方法
             if (this.tag == "abandon")
             {

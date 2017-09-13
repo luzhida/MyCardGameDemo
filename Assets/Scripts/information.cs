@@ -11,6 +11,7 @@ public class information : MonoBehaviour {
         halfScreenH = Screen.height / 2;
         halfScreenW = Screen.width / 2;
         this.transform.position = new Vector3(halfScreenW-625, halfScreenH-275, 5);
+        Debug.Log(this.transform.position);
     }
 	
 	// Update is called once per frame

@@ -9,7 +9,6 @@ public class actionInformation : MonoBehaviour {
     public static GameObject showActionInformation;//实例化的信息面板
     public List<Material> actionMaterial = new List<Material>();//用于动作卡解释说明的材质
     Text introductions;//悬停于动作卡上而出现的解释文本
-    public List<Texture2D> actionCard;//动作卡的卡图
 
     // Use this for initialization
     void Start () {
