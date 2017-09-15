@@ -7,13 +7,14 @@ public class rule : MonoBehaviour {
     Text introductionOfRule;//规则说明文本
     private float halfScreenW;//屏幕的一半宽
     private float halfScreenH;//屏幕的一半高
+    public Button enterGame;//进入游戏界面的按钮
 
     // Use this for initialization
     void Start () {
         halfScreenW = Screen.width / 2;
         halfScreenH = Screen.height / 2;
         introductionOfRule = GameObject.Find("Canvas/rule").GetComponent<Text>();
-        introductionOfRule.text = "《起床大作战》为一款卡牌闯关类游戏。卡牌分为角色卡12种，分别为602寝室的12位不同成员。" +
+        introductionOfRule.text = "《睡你麻痹起来High》为一款卡牌闯关类游戏。卡牌分为角色卡12种，分别为602寝室的12位不同成员。" +
             "动作卡分为4种，分别为：吵闹、硬拽、撒娇、放弃。" +
             "\n游戏初始状态为玩家统一持有两种由12张角色卡以及12组4种动作卡共计60张卡的卡组。游戏开始时，将会随机将四张角" +
             "色卡和一张动作卡置入玩家手牌" +
@@ -35,19 +36,16 @@ public class rule : MonoBehaviour {
             "沉睡度增加5%，愤怒值减少5%" +
             "\n处于情敌关系的角色卡上所打出的撒娇动作卡，赖床者的响应为沉睡度减少3%，愤怒值增加5%，打出其余动作卡时，" +
             "响应与同学关系一致";
+
+        //如果点击了场景中的进入游戏按钮，则进入游戏界面
+        enterGame.onClick.AddListener(delegate () {
+            Application.LoadLevel("game");
+        });
     }
 	
 	// Update is called once per frame
 	void Update () {
 		
 	}
-    //规则介绍界面
-    private void OnGUI()
-    {
-        //进入游戏的按钮
-        if (GUI.Button(new Rect(halfScreenW-50, halfScreenH+200, 100, 50), "进入游戏"))
-        {
-            Application.LoadLevel("game");
-        }
-    }
+    
 }

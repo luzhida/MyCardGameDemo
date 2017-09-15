@@ -221,7 +221,6 @@ public class gameControl : MonoBehaviour {
 
     private void enterBattlefield() {
         //由于点击鼠标后，预制件会被破坏，因此无法执行脚本中的OnMouseExit函数，故在点击后就直接将showRoleInformation破坏
-        Destroy(roleInformation.showRoleInformation);
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); //定义一条射线，这条射线从摄像机屏幕射向鼠标所在位置
         RaycastHit hit; //声明一个碰撞的点(暂且理解为碰撞的交点)
         if (Physics.Raycast(ray, out hit)) //如果真的发生了碰撞，ray这条射线在hit点与别的物体碰撞了
@@ -270,7 +269,7 @@ public class gameControl : MonoBehaviour {
     //实现沉睡度和愤怒值的百分比条
     private void OnGUI()
     {
-        float newSleepyBarWidth = (sleepyPercent / 100) * levelFGMaxWidth;
+        /*float newSleepyBarWidth = (sleepyPercent / 100) * levelFGMaxWidth;
         float newAngryBarWidth = (angryPercent / 100) * levelFGMaxWidth;
         GUI.BeginGroup(new Rect(halfScreenW-560 , halfScreenH-240, levelBG.width, levelBG.height));
         GUI.DrawTexture(new Rect(0, 0, levelBG.width, levelBG.height), levelBG);
@@ -283,7 +282,7 @@ public class gameControl : MonoBehaviour {
         GUI.BeginGroup(new Rect(5, 6, newAngryBarWidth, levelFG.height));
         GUI.DrawTexture(new Rect(0, 0, levelFG.width, levelFG.height), levelFG);
         GUI.EndGroup();
-        GUI.EndGroup();
+        GUI.EndGroup();*/
         //赢时输出的信息以及创建再玩一次的按钮
         if (winOrNot) {
             GUI.Box(new Rect(600, 400, 180, 40), "艹，吵醒老子你要死啊！！！");
@@ -291,6 +290,7 @@ public class gameControl : MonoBehaviour {
             if (GUI.Button(new Rect(600, 450, 180, 40),
                 "有种再玩一次，劳资打死你"))
             {
+                initData();
                 Application.LoadLevel("title");
             }
         }
@@ -302,11 +302,23 @@ public class gameControl : MonoBehaviour {
             if (GUI.Button(new Rect(560, 450, 250, 40),
                 "胜败乃兵家常事，大侠请重新来过"))
             {
+                initData();
                 Application.LoadLevel("title");
             }
         }
     }
 
-
+    void initData() {
+        startSleepyLevel = 20;
+        startAngryLevel = 50;
+        j = 0;
+        KinBattlefield = false;
+        LinBattlefield = false;
+        UseSkillOfL = false;
+        canUseActionCard = true;
+        canUseRoleCard = true;
+        winOrNot = false;
+        loseOrNot = false;
+    }
 
 }

@@ -10,8 +10,7 @@ public class information : MonoBehaviour {
     void Start () {
         halfScreenH = Screen.height / 2;
         halfScreenW = Screen.width / 2;
-        this.transform.position = new Vector3(halfScreenW-625, halfScreenH-275, 5);
-        Debug.Log(this.transform.position);
+        this.GetComponent<RectTransform>().localPosition = new Vector3(50, 16, 5);
     }
 	
 	// Update is called once per frame

@@ -6,9 +6,7 @@ using UnityEngine.UI;
 public class actionFieldResponse : MonoBehaviour {
     public GameObject role;
     public static bool actionCardCanResponse;//用来确保不会反复调用动作卡的响应方法
-    public GameObject informationBar;//信息面板预制件
-    private GameObject showActionInformation;//实例化的信息面板
-    public Material initialMaterial;//角色卡区域的初始材质
+    public Material initialMaterial;//战场的初始材质
     int randomNumber;//某些角色卡的特殊能力为将打在自己身上的动作卡随机进行改变，故设置该随机数
     //某些角色卡的特殊能力为将打在自己身上的动作卡随机进行改变，故设置动作卡卡材质的List集合
     //到时改变动作卡材质，模拟动作卡改变效果
@@ -19,10 +17,12 @@ public class actionFieldResponse : MonoBehaviour {
     public List<GameObject> roleFields = new List<GameObject>();//作为角色卡区域的游戏物体
     private int i;//角色卡区域游戏物体的List集合的下标
     Text introductions;//悬停于动作卡上而出现的解释文本
+    private Image image;//用来存储场景中的image组件
 
     // Use this for initialization
     void Start () {
         introductions = GameObject.Find("Canvas/introduction").GetComponent<Text>();
+        image = GameObject.Find("Canvas/Image").GetComponent<Image>();
     }
 	
 	// Update is called once per frame
@@ -81,27 +81,26 @@ public class actionFieldResponse : MonoBehaviour {
     //随后将不同的材质赋给他，来向玩家说明不同卡片的作用
     void OnMouseEnter()
     {
-        showActionInformation = GameObject.Instantiate(informationBar) as GameObject;
         switch (this.tag)
         {
             case "abandon":
-                showActionInformation.GetComponent<Renderer>().material = actionCardMaterials[0];
+                image.material = actionCardMaterials[0];
                 introductions.text = "动作卡：放弃。走吧走吧都散了吧，这货没救了！";
                 break;
             case "coquetry":
-                showActionInformation.GetComponent<Renderer>().material = actionCardMaterials[1];
+                image.material = actionCardMaterials[1];
                 introductions.text = "动作卡：撒娇。模仿其女神撒娇似的声音来叫赖床者起床，起——床——啦。";
                 break;
             case "noisy":
-                showActionInformation.GetComponent<Renderer>().material = actionCardMaterials[2];
+                image.material = actionCardMaterials[2];
                 introductions.text = "动作卡：吵闹。在寝室大吵大闹，睡你麻痹，起来嗨！！！";
                 break;
             case "pull":
-                showActionInformation.GetComponent<Renderer>().material = actionCardMaterials[3];
+                image.material = actionCardMaterials[3];
                 introductions.text = "动作卡：硬拽。直接把赖床者拽起来，草泥马，赶紧给老子起来！";
                 break;
             case "makeSense":
-                showActionInformation.GetComponent<Renderer>().material = actionCardMaterials[4];
+                image.material = actionCardMaterials[4];
                 introductions.text = "动作卡：讲道理。叫道理嘛，你赖床是不对滴。众人：滚！！！";
                 break;
             default:
@@ -112,7 +111,7 @@ public class actionFieldResponse : MonoBehaviour {
     //鼠标离开时破坏信息面板实例
     void OnMouseExit()
     {
-        Destroy(showActionInformation);
+        image.material = initialMaterial;
     }
 
     void abandon()
