@@ -49,6 +49,7 @@ public class actionFieldResponse : MonoBehaviour {
             if (this.tag == "coquetry")
             {
                 coquetry();
+                Debug.Log(1);
                 //每次响应完后修改actionCardCanResponse，避免重复响应
                 actionCardCanResponse = false;
             }
