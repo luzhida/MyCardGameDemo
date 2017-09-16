@@ -19,26 +19,34 @@ Platform assembly: E:\3DProject\Demo\Demo_Data\Managed\UnityEngine.Networking.dl
 Loading E:\3DProject\Demo\Demo_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
 Platform assembly: E:\3DProject\Demo\Demo_Data\Managed\UnityEngine.Analytics.dll (this message is harmless)
 Loading E:\3DProject\Demo\Demo_Data\Managed\UnityEngine.Analytics.dll into Unity Child Domain
-- Completed reload, in  0.035 seconds
+- Completed reload, in  0.025 seconds
 Platform assembly: E:\3DProject\Demo\Demo_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: E:\3DProject\Demo\Demo_Data\Managed\System.dll (this message is harmless)
 desktop: 1366x768 60Hz; virtual: 1366x768 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 4.822511 ms
+UnloadTime: 4.828498 ms
 Setting up 2 worker threads for Enlighten.
-  Thread -> id: 1204 -> priority: 1 
-  Thread -> id: 17a0 -> priority: 1 
+  Thread -> id: ce0 -> priority: 1 
+  Thread -> id: 8d8 -> priority: 1 
 Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 12.407586 ms
+UnloadTime: 10.422475 ms
 
-Unloading 7 unused Assets to reduce memory usage. Loaded Objects now: 304.
-Total: 0.452444 ms (FindLiveObjects: 0.044902 ms CreateObjectMapping: 0.038915 ms MarkObjects: 0.345106 ms  DeleteObjects: 0.022237 ms)
+Unloading 6 unused Assets to reduce memory usage. Loaded Objects now: 307.
+Total: 0.429351 ms (FindLiveObjects: 0.033356 ms CreateObjectMapping: 0.028224 ms MarkObjects: 0.349382 ms  DeleteObjects: 0.017960 ms)
 
-Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 0.407542 ms
+Unloading 4 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 0.378462 ms
 
-Unloading 3 unused Assets to reduce memory usage. Loaded Objects now: 493.
-Total: 0.341685 ms (FindLiveObjects: 0.039343 ms CreateObjectMapping: 0.023092 ms MarkObjects: 0.268558 ms  DeleteObjects: 0.009408 ms)
+Unloading 3 unused Assets to reduce memory usage. Loaded Objects now: 504.
+Total: 0.357508 ms (FindLiveObjects: 0.038915 ms CreateObjectMapping: 0.021809 ms MarkObjects: 0.287802 ms  DeleteObjects: 0.008552 ms)
+
+NullReferenceException: Object reference not set to an instance of an object
+  at actionCardControl.abandon () [0x00000] in <filename unknown>:0 
+  at actionCardControl.actionCardResponse () [0x00000] in <filename unknown>:0 
+  at actionCardControl.enterBattlefield () [0x00000] in <filename unknown>:0 
+  at actionCardControl.Update () [0x00000] in <filename unknown>:0 
+ 
+(Filename:  Line: -1)
 

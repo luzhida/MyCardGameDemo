@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class gameControl : MonoBehaviour {
+public class gameControl : MonoBehaviour
+{
     public Transform card01;//用来确定角色卡的手牌位置的场景隐藏游戏物体
     public Transform card02;//用来确定角色卡的手牌位置的场景隐藏游戏物体
     private float xOffset;//用来保持角色卡之间保持的固定间距
@@ -15,7 +16,7 @@ public class gameControl : MonoBehaviour {
     public bool PlayCard;//出牌对战阶段
     public Button buttonPrefab;//标志回合结束，并标明下回合开始将一张角色卡加入手牌的结束回合按钮
 
-    public static float startSleepyLevel = 20;//开始时的沉睡度
+    public static float startSleepyLevel = 35;//开始时的沉睡度
     public static float startAngryLevel = 50;//开始的愤怒值
     public static float sleepyLevelRemaining;//游戏过程中变化的沉睡度
     public static float angryLevelRemaining;//游戏过程中变化的愤怒值
@@ -25,7 +26,7 @@ public class gameControl : MonoBehaviour {
     public Texture2D levelFG;//沉睡度和愤怒值百分比条的显示
     private float levelFGMaxWidth;//沉睡度和愤怒值满值后百分比条的长度
 
-    int i=0;//roleDeck数组的下标
+    int i = 0;//roleDeck数组的下标
     public List<GameObject> roleField = new List<GameObject>();//角色卡置入战场后的区域
     public static int j = 0;//roleField数组的下标
     private List<int> result = new List<int>(12);//存储为赋予不同角色卡材质产生的随机数
@@ -44,7 +45,10 @@ public class gameControl : MonoBehaviour {
     private float halfScreenW;//屏幕的一半宽
     private float halfScreenH;//屏幕的一半高
 
-    void Start () {
+    
+
+    void Start()
+    {
         halfScreenH = Screen.height / 2;
         halfScreenW = Screen.width / 2;
         angryLevelRemaining = startAngryLevel;//将初始沉睡度赋给变化沉睡度
@@ -58,22 +62,27 @@ public class gameControl : MonoBehaviour {
             AddRoleCard();
         }
         //如果点击了场景中的结束（角色卡)按钮，则表示结束回合，执行敌方回合的方法
-        buttonPrefab.onClick.AddListener(delegate () {
+        buttonPrefab.onClick.AddListener(delegate ()
+        {
             EnemyTurn();
         });
-        
-        UseOrNot.onClick.AddListener(delegate () {
+
+        UseOrNot.onClick.AddListener(delegate ()
+        {
             //如果点击了使用L角色技能的按钮，则判断L是否在场上
-            if (LinBattlefield) {
+            if (LinBattlefield)
+            {
                 UseSkillOfL = true;
             }
         });
-
-
+        
+       
+        
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update()
+    {
         //沉睡度及愤怒值所要显示的百分比
         sleepyPercent = sleepyLevelRemaining / 100 * 100;
         angryPercent = angryLevelRemaining / 100 * 100;
@@ -88,7 +97,7 @@ public class gameControl : MonoBehaviour {
             AddRoleCard();
         //首先判断是否点击了鼠标左键
         if (Input.GetMouseButtonDown(0))
-        { 
+        {
             //执行将角色卡置入战场的方法
             enterBattlefield();
         }
@@ -99,15 +108,17 @@ public class gameControl : MonoBehaviour {
         if (sleepyLevelRemaining <= 0)
         {
             winOrNot = true;
-            
+
 
         }
 
         //判断玩家是否输了比赛
-        if (sleepyLevelRemaining >= 100) {
+        if (sleepyLevelRemaining >= 100)
+        {
             loseOrNot = true;
 
         }
+
         
     }
 
@@ -139,13 +150,15 @@ public class gameControl : MonoBehaviour {
         {
             canUseRoleCard = false;
         }
-        else {
+        else
+        {
             canUseRoleCard = true;
         }
         canUseActionCard = true;
     }
 
-    public void AddRoleCard() {
+    public void AddRoleCard()
+    {
         //创建不重复的随机数
         do
         {
@@ -219,7 +232,8 @@ public class gameControl : MonoBehaviour {
         }
     }
 
-    private void enterBattlefield() {
+    private void enterBattlefield()
+    {
         //由于点击鼠标后，预制件会被破坏，因此无法执行脚本中的OnMouseExit函数，故在点击后就直接将showRoleInformation破坏
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); //定义一条射线，这条射线从摄像机屏幕射向鼠标所在位置
         RaycastHit hit; //声明一个碰撞的点(暂且理解为碰撞的交点)
@@ -229,11 +243,13 @@ public class gameControl : MonoBehaviour {
             //则将碰撞物的材质、标签依次赋予作为角色卡场地的预制件
             if (hit.collider.gameObject.tag != "abandon" && hit.collider.gameObject.tag != "coquetry"
                 && hit.collider.gameObject.tag != "noisy" && hit.collider.gameObject.tag != "pull"
-                && hit.collider.gameObject.tag != "Untagged" && canUseRoleCard) {
+                && hit.collider.gameObject.tag != "Untagged" && canUseRoleCard)
+            {
                 //当回合中使用了角色卡后就不可以在使用动作卡了
                 canUseActionCard = false;
                 //当角色卡能使用时才会执行下面的代码
-                if (canUseRoleCard) {
+                if (canUseRoleCard)
+                {
                     //如果K角色卡被打出
                     if (hit.collider.gameObject.tag == "K.同学")
                     {
@@ -262,7 +278,7 @@ public class gameControl : MonoBehaviour {
                 //角色卡一回合只能使用一张
                 canUseRoleCard = false;
             }
-            
+
         }
     }
 
@@ -284,7 +300,8 @@ public class gameControl : MonoBehaviour {
         GUI.EndGroup();
         GUI.EndGroup();*/
         //赢时输出的信息以及创建再玩一次的按钮
-        if (winOrNot) {
+        if (winOrNot)
+        {
             GUI.Box(new Rect(600, 400, 180, 40), "艹，吵醒老子你要死啊！！！");
             //创建再玩一次的按钮
             if (GUI.Button(new Rect(600, 450, 180, 40),
@@ -308,8 +325,9 @@ public class gameControl : MonoBehaviour {
         }
     }
 
-    void initData() {
-        startSleepyLevel = 20;
+    void initData()
+    {
+        startSleepyLevel = 35;
         startAngryLevel = 50;
         j = 0;
         KinBattlefield = false;
@@ -321,4 +339,5 @@ public class gameControl : MonoBehaviour {
         loseOrNot = false;
     }
 
+   
 }
