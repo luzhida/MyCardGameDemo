@@ -68,7 +68,7 @@ public class actionCardControl : MonoBehaviour {
 
         if (updateRoleField)
         {
-           // updateRoleFields();
+           updateRoleFields();
         }
     }
 
@@ -240,6 +240,9 @@ public class actionCardControl : MonoBehaviour {
             case "pull":
                 pull();
                 break;
+            case "makeSense":
+                makeSense();
+                break;
             default:
                 break;
         }
@@ -282,8 +285,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↑3";
                     gameControl.angryLevelRemaining -= 5;
                     angryVariableQuantity.text = "↓5";
-                    this.tag = "coquetry";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[1];
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
                 }
                 else
                 {
@@ -302,8 +305,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↓8";
                     gameControl.angryLevelRemaining += 5;
                     angryVariableQuantity.text = "↑5";
-                    this.tag = "noisy";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[2];
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
                 }
                 else
                 {
@@ -322,8 +325,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↓3";
                     gameControl.angryLevelRemaining += 1;
                     angryVariableQuantity.text = "↑1";
-                    this.tag = "pull";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[3];
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
                 }
                 else
                 {
@@ -421,8 +424,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↓8";
                     gameControl.angryLevelRemaining += 5;
                     angryVariableQuantity.text = "↑5";
-                    this.tag = "noisy";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[2];
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
                 }
                 else
                 {
@@ -441,8 +444,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↓3";
                     gameControl.angryLevelRemaining += 1;
                     angryVariableQuantity.text = "↑1";
-                    this.tag = "pull";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[3];
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
                 }
                 else
                 {
@@ -463,8 +466,8 @@ public class actionCardControl : MonoBehaviour {
                     gameControl.angryLevelRemaining -= 5;
                     angryVariableQuantity.text = "↓5";
 
-                    this.tag = "abandon";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[0];
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
                 }
                 else
                 {
@@ -545,8 +548,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↑3";
                     gameControl.angryLevelRemaining -= 5;
                     angryVariableQuantity.text = "↓5";
-                    this.tag = "coquetry";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[1];
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
                 }
                 else
                 {
@@ -571,8 +574,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↓3";
                     gameControl.angryLevelRemaining += 1;
                     angryVariableQuantity.text = "↑1";
-                    this.tag = "pull";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[3];
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
                 }
                 else
                 {
@@ -591,8 +594,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↑3";
                     gameControl.angryLevelRemaining -= 5;
                     angryVariableQuantity.text = "↓5";
-                    this.tag = "abandon";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[0];
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
                 }
                 else
                 {
@@ -667,8 +670,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↑3";
                     gameControl.angryLevelRemaining -= 5;
                     angryVariableQuantity.text = "↓5";
-                    this.tag = "coquetry";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[1];
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
                 }
                 else
                 {
@@ -687,8 +690,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↓8";
                     gameControl.angryLevelRemaining += 5;
                     angryVariableQuantity.text = "↑5";
-                    this.tag = "noisy";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[2];
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
                 }
                 else
                 {
@@ -713,8 +716,8 @@ public class actionCardControl : MonoBehaviour {
                     sleepyVariableQuantity.text = "↑3";
                     gameControl.angryLevelRemaining -= 5;
                     angryVariableQuantity.text = "↓5";
-                    this.tag = "abandon";
-                    this.GetComponent<Renderer>().material = actionCardMaterials[0];
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
                 }
                 else
                 {
