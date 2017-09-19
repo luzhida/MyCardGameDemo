@@ -28,6 +28,7 @@ public class actionCardControl : MonoBehaviour {
     Text angryVariableQuantity;//愤怒值的变化量
     public List<GameObject> roleField = new List<GameObject>();
     public Material J;//J角色的材质
+    private int temporaryNumber;//为了进行数据交换而临时设置的数
 
     // Use this for initialization
     void Start () {
@@ -138,18 +139,21 @@ public class actionCardControl : MonoBehaviour {
                     someNum = Random.Range(0, 3);
                     if (someNum == 0 && gameControl.KinBattlefield)
                     {
+                        changeForK = true;
+                        temporaryNumber = k;
+                        k = gameControl.positionOfK;//将要添加材质的动作卡区域改为K角色卡下的动作卡区域
                         //如果L角色的技能被使用，则最近一次打出的动作卡会被转换成为将愤怒值减8的动作卡“讲道理”
                         if (gameControl.UseSkillOfL)
                         {
-                            actionField[gameControl.positionOfK].GetComponent<Renderer>().material = actionCardMaterials[4];
-                            actionField[gameControl.positionOfK].tag = "makeSense";
+                            actionField[k].GetComponent<Renderer>().material = actionCardMaterials[4];
+                            actionField[k].tag = "makeSense";
                             //L角色的技能只能改变一张动作卡
                             gameControl.UseSkillOfL = false;
                         }
                         else
                         {
-                            actionField[gameControl.positionOfK].GetComponent<Renderer>().material = hit.collider.gameObject.GetComponent<Renderer>().material;
-                            actionField[gameControl.positionOfK].tag = hit.collider.gameObject.tag;
+                            actionField[k].GetComponent<Renderer>().material = hit.collider.gameObject.GetComponent<Renderer>().material;
+                            actionField[k].tag = hit.collider.gameObject.tag;
                         }
                     }
                     else
@@ -245,6 +249,10 @@ public class actionCardControl : MonoBehaviour {
                 break;
             default:
                 break;
+        }
+        if (changeForK) {
+            k = temporaryNumber;
+            changeForK = false;
         }
     }
 
@@ -769,12 +777,18 @@ public class actionCardControl : MonoBehaviour {
         {
             while (roleField[i].tag == "Untagged")
             {
+                //在将某角色卡移除以后，修改曾记录的K的角色卡位置
+                if (gameControl.KinBattlefield && gameControl.positionOfK > i)
+                {
+                    gameControl.positionOfK--;
+                }
                 for (int j = i; j < 5; j++)
                 {
                     roleField[j].GetComponent<Renderer>().material = roleField[j + 1].GetComponent<Renderer>().material;
                     roleField[j].tag = roleField[j + 1].tag;
                 }
             }
+            
             updateRoleField = false;
         }
     }
