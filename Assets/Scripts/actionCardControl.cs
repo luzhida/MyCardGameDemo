@@ -29,6 +29,7 @@ public class actionCardControl : MonoBehaviour {
     public List<GameObject> roleField = new List<GameObject>();
     public Material J;//J角色的材质
     private int temporaryNumber;//为了进行数据交换而临时设置的数
+    private bool changeForK;//判断是否因为K的特殊技能而产生了某些改变
 
     // Use this for initialization
     void Start () {
