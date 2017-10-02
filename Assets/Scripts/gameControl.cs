@@ -16,15 +16,12 @@ public class gameControl : MonoBehaviour
     public bool PlayCard;//出牌对战阶段
     public Button buttonPrefab;//标志回合结束，并标明下回合开始将一张角色卡加入手牌的结束回合按钮
 
-    public static float startSleepyLevel = 35;//开始时的沉睡度
-    public static float startAngryLevel = 50;//开始的愤怒值
+    public static float startSleepyLevel;//开始时的沉睡度
+    public static float startAngryLevel;//开始的愤怒值
     public static float sleepyLevelRemaining;//游戏过程中变化的沉睡度
     public static float angryLevelRemaining;//游戏过程中变化的愤怒值
-    private float sleepyPercent;//开始沉睡度的百分比
-    private float angryPercent;//开始愤怒值的百分比
-    public Texture2D levelBG;//沉睡度和愤怒值百分比条的背景
-    public Texture2D levelFG;//沉睡度和愤怒值百分比条的显示
-    private float levelFGMaxWidth;//沉睡度和愤怒值满值后百分比条的长度
+    public Image sleepyLevelFG;
+    public Image angryLevelFG;
 
     int i = 0;//roleDeck数组的下标
     public List<GameObject> roleField = new List<GameObject>();//角色卡置入战场后的区域
@@ -42,18 +39,14 @@ public class gameControl : MonoBehaviour
     public static bool canUseRoleCard = true;//判断是否能使用角色卡
     private bool winOrNot = false;//判断是否胜利
     private bool loseOrNot = false;//判断是否输了
-    private float halfScreenW;//屏幕的一半宽
-    private float halfScreenH;//屏幕的一半高
+    public int gameNum;//表明这是第几关
 
-    
 
     void Start()
     {
-        halfScreenH = Screen.height / 2;
-        halfScreenW = Screen.width / 2;
+        initLevel();
         angryLevelRemaining = startAngryLevel;//将初始沉睡度赋给变化沉睡度
         sleepyLevelRemaining = startSleepyLevel;//将初始愤怒值赋给变化愤怒值
-        levelFGMaxWidth = levelFG.width;//让显示的百分比条等于他的最大值
         xOffset = card02.position.x - card01.position.x;
         BuildDeck();//创建初始卡组
         //游戏开始时从卡组中将四张角色卡置入手牌
@@ -83,9 +76,6 @@ public class gameControl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //沉睡度及愤怒值所要显示的百分比
-        sleepyPercent = sleepyLevelRemaining / 100 * 100;
-        angryPercent = angryLevelRemaining / 100 * 100;
         //在场景中显示变化的沉睡度
         text = GameObject.Find("Canvas/sleepyLevel").GetComponent<Text>();
         text.text = sleepyLevelRemaining.ToString() + "%";
@@ -118,8 +108,26 @@ public class gameControl : MonoBehaviour
             loseOrNot = true;
 
         }
+        //显示沉睡度和愤怒值的百分比条
+        sleepyLevelFG.fillAmount = sleepyLevelRemaining / 100;
+        angryLevelFG.fillAmount = angryLevelRemaining / 100;
+    }
 
-        
+    //初始化沉睡度和愤怒值
+    void initLevel() {
+        //根据当前是第几关来赋值
+        switch (gameNum) {
+            case 1:
+                startSleepyLevel = 35;
+                startAngryLevel = 50;
+                break;
+            case 2:
+                startSleepyLevel = 50;
+                startAngryLevel = 50;
+                break;
+            default:
+                break;
+        }
     }
 
     private void BuildDeck()
@@ -132,12 +140,15 @@ public class gameControl : MonoBehaviour
             roleDeck[j] = GameObject.Instantiate(roleCard) as GameObject;
             //每创建一张卡片，将他的Y轴坐标上移
             float y = (float)i / 10 - 10;
-            roleDeck[j].transform.position = new Vector3(31, y, -15);
+            roleDeck[j].transform.position = new Vector3(30, y, -10);
         }
     }
 
     private void EnemyTurn()
     {
+        //每回合结束会记录当前回合的沉睡度及愤怒值为初始的沉睡度及愤怒值
+        gameControl.startSleepyLevel = gameControl.sleepyLevelRemaining;
+        gameControl.startAngryLevel = gameControl.angryLevelRemaining;
         //将变化沉睡度增加
         sleepyLevelRemaining += 5;
         //表示结束敌人回合，再次进入发牌阶段
@@ -159,66 +170,69 @@ public class gameControl : MonoBehaviour
 
     public void AddRoleCard()
     {
-        //创建不重复的随机数
-        do
-        {
-            someNum = Random.Range(0, roleMaterials.Count);
-        } while (result.Contains(someNum));
-        result.Add(someNum);
-        //根据手牌数，将置入的手牌移至与card01相应的位置
-        Vector3 toPosition = card01.position + new Vector3(xOffset, 0, 0) * cards.Count;
-        iTween.MoveTo(roleDeck[i], toPosition, 1f);
-        //将随机的角色卡材质赋予从卡组置入的手牌
-        roleDeck[i].GetComponent<Renderer>().material = roleMaterials[someNum];
-        //根据随机数判断是哪张角色卡，并将该角色卡的名称作为标签赋给置入的手牌
-        switch (someNum)
-        {
-            case 0:
-                roleDeck[i].tag = "A.情敌";
-                break;
-            case 1:
-                roleDeck[i].tag = "B.同学";
-                break;
-            case 2:
-                roleDeck[i].tag = "C.同学";
-                break;
-            case 3:
-                roleDeck[i].tag = "D.同学";
-                break;
-            case 4:
-                roleDeck[i].tag = "E.同学";
-                break;
-            case 5:
-                roleDeck[i].tag = "F.讨厌";
-                break;
-            case 6:
-                roleDeck[i].tag = "G.同学";
-                break;
-            case 7:
-                roleDeck[i].tag = "H.情敌";
-                break;
-            case 8:
-                roleDeck[i].tag = "I.基友";
-                break;
-            case 9:
-                roleDeck[i].tag = "J.同学";
-                break;
-            case 10:
-                roleDeck[i].tag = "K.同学";
-                break;
-            case 11:
-                roleDeck[i].tag = "L.同学";
-                break;
-            default:
-                break;
+        //角色卡数不能大于8，否则就不会发牌
+        if (cards.Count < 8) {
+            //创建不重复的随机数
+            do
+            {
+                someNum = Random.Range(0, roleMaterials.Count);
+            } while (result.Contains(someNum));
+            result.Add(someNum);
+            //根据手牌数，将置入的手牌移至与card01相应的位置
+            Vector3 toPosition = card01.position + new Vector3(xOffset, 0, 0) * cards.Count;
+            iTween.MoveTo(roleDeck[i], toPosition, 1f);
+            //将随机的角色卡材质赋予从卡组置入的手牌
+            roleDeck[i].GetComponent<Renderer>().material = roleMaterials[someNum];
+            //根据随机数判断是哪张角色卡，并将该角色卡的名称作为标签赋给置入的手牌
+            switch (someNum)
+            {
+                case 0:
+                    roleDeck[i].tag = "A";
+                    break;
+                case 1:
+                    roleDeck[i].tag = "B";
+                    break;
+                case 2:
+                    roleDeck[i].tag = "C";
+                    break;
+                case 3:
+                    roleDeck[i].tag = "D";
+                    break;
+                case 4:
+                    roleDeck[i].tag = "E";
+                    break;
+                case 5:
+                    roleDeck[i].tag = "F";
+                    break;
+                case 6:
+                    roleDeck[i].tag = "G";
+                    break;
+                case 7:
+                    roleDeck[i].tag = "H";
+                    break;
+                case 8:
+                    roleDeck[i].tag = "I";
+                    break;
+                case 9:
+                    roleDeck[i].tag = "J";
+                    break;
+                case 10:
+                    roleDeck[i].tag = "K";
+                    break;
+                case 11:
+                    roleDeck[i].tag = "L";
+                    break;
+                default:
+                    break;
+            }
+            //改变roleDeck的角度，让他看上去像是手牌
+            roleDeck[i].transform.rotation = Quaternion.Euler(90, 0, 0);
+            //将置入手牌中的roleDeck添加进存储手牌的List集合
+            cards.Add(roleDeck[i]);
+            //发完牌后，将CardGennerating改为false，表明发牌阶段结束
+            CardGenerating = false;
+            i++;
         }
-        //改变roleDeck的角度，让他看上去像是手牌
-        roleDeck[i].transform.rotation = Quaternion.Euler(90, 0, 0);
-        //将置入手牌中的roleDeck添加进存储手牌的List集合
-        cards.Add(roleDeck[i]);
-        //发完牌后，将CardGennerating改为false，表明发牌阶段结束
-        CardGenerating = false;
-        i++;
     }
 
     void UpdateShow()
@@ -251,13 +265,13 @@ public class gameControl : MonoBehaviour
                 if (canUseRoleCard)
                 {
                     //如果K角色卡被打出
-                    if (hit.collider.gameObject.tag == "K.同学")
+                    if (hit.collider.gameObject.tag == "K")
                     {
                         KinBattlefield = true;//表示K被置入战场
                         positionOfK = j;//将List集合的下标记录下来，即记录了角色K的位置
                     }
                     //当角色卡L被置入战场之后，将LinBattlefield改为true
-                    else if (hit.collider.gameObject.tag == "L.同学")
+                    else if (hit.collider.gameObject.tag == "L")
                     {
                         LinBattlefield = true;
                     }
@@ -282,23 +296,8 @@ public class gameControl : MonoBehaviour
         }
     }
 
-    //实现沉睡度和愤怒值的百分比条
     private void OnGUI()
     {
-        /*float newSleepyBarWidth = (sleepyPercent / 100) * levelFGMaxWidth;
-        float newAngryBarWidth = (angryPercent / 100) * levelFGMaxWidth;
-        GUI.BeginGroup(new Rect(halfScreenW-560 , halfScreenH-240, levelBG.width, levelBG.height));
-        GUI.DrawTexture(new Rect(0, 0, levelBG.width, levelBG.height), levelBG);
-        GUI.BeginGroup(new Rect(5, 6, newSleepyBarWidth, levelFG.height));
-        GUI.DrawTexture(new Rect(0, 0, levelFG.width, levelFG.height), levelFG);
-        GUI.EndGroup();
-        GUI.EndGroup();
-        GUI.BeginGroup(new Rect(halfScreenW-560 , halfScreenH-240 + levelBG.height, levelBG.width, levelBG.height));
-        GUI.DrawTexture(new Rect(0, 0, levelBG.width, levelBG.height), levelBG);
-        GUI.BeginGroup(new Rect(5, 6, newAngryBarWidth, levelFG.height));
-        GUI.DrawTexture(new Rect(0, 0, levelFG.width, levelFG.height), levelFG);
-        GUI.EndGroup();
-        GUI.EndGroup();*/
         //赢时输出的信息以及创建再玩一次的按钮
         if (winOrNot)
         {
@@ -339,5 +338,4 @@ public class gameControl : MonoBehaviour
         loseOrNot = false;
     }
 
-   
 }

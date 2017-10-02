@@ -30,6 +30,11 @@ public class actionCardControl : MonoBehaviour {
     public Material J;//J角色的材质
     private int temporaryNumber;//为了进行数据交换而临时设置的数
     private bool changeForK;//判断是否因为K的特殊技能而产生了某些改变
+    public static string curRFTag;//当前角色卡区域的标签
+    public static bool AddOrReduce;//判断沉睡度是增加还是减少了15%
+    public int gameNum;//表明这是第几关
+    private int startSleepyLevel;//第二关开始时的沉睡度
+    private int startAngryLevel;//第二关开始的愤怒值
 
     // Use this for initialization
     void Start () {
@@ -84,40 +89,46 @@ public class actionCardControl : MonoBehaviour {
             actionDeck[j] = GameObject.Instantiate(actionCard) as GameObject;
             //每创建一张卡片，将他的Y轴坐标上移
             float y = (float)i / 10 - 10;
-            actionDeck[j].transform.position = new Vector3(-8, y, -15);
+            actionDeck[j].transform.position = new Vector3(-8, y, -8);
         }
     }
 
     public void AddActionCard()
     {
-        do {
-            someNum = Random.Range(0, actionMaterials.Count);
-        } while (result.Contains(someNum));
-        result.Add(someNum);
-        Vector3 toPosition = card03.position - new Vector3(xOffset, 0, 0) * cards.Count;
-        iTween.MoveTo(actionDeck[i], toPosition, 1f);
-        actionDeck[i].GetComponent<Renderer>().material = actionMaterials[someNum];
-        int fuck = (someNum+1) % 4;
-        switch (fuck) {
-            case 0:
-                actionDeck[i].tag = "pull";
-                break;
-            case 1:
-                actionDeck[i].tag = "abandon";
-                break;
-            case 2:
-                actionDeck[i].tag = "coquetry";
-                break;
-            case 3:
-                actionDeck[i].tag = "noisy";
-                break;
-            default:
-                break;
+        //动作卡不能大于6，否则就不会发牌
+        if (cards.Count < 6)
+        {
+            do
+            {
+                someNum = Random.Range(0, actionMaterials.Count);
+            } while (result.Contains(someNum));
+            result.Add(someNum);
+            Vector3 toPosition = card03.position - new Vector3(xOffset, 0, 0) * cards.Count;
+            iTween.MoveTo(actionDeck[i], toPosition, 1f);
+            actionDeck[i].GetComponent<Renderer>().material = actionMaterials[someNum];
+            int fuck = (someNum + 1) % 4;
+            switch (fuck)
+            {
+                case 0:
+                    actionDeck[i].tag = "pull";
+                    break;
+                case 1:
+                    actionDeck[i].tag = "abandon";
+                    break;
+                case 2:
+                    actionDeck[i].tag = "coquetry";
+                    break;
+                case 3:
+                    actionDeck[i].tag = "noisy";
+                    break;
+                default:
+                    break;
+            }
+            actionDeck[i].transform.rotation = Quaternion.Euler(90, 0, 0);
+            cards.Add(actionDeck[i]);
+            // CardGenerating = false;
+            i++;
         }
-        actionDeck[i].transform.rotation = Quaternion.Euler(90, 0, 0);
-        cards.Add(actionDeck[i]);
-        // CardGenerating = false;
-        i++;
     }
 
     private void enterBattlefield()
@@ -195,6 +206,18 @@ public class actionCardControl : MonoBehaviour {
 
     private void EnemyTurn()
     {
+        //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
+        if (gameNum == 2 && (System.Math.Abs(gameControl.sleepyLevelRemaining - gameControl.startSleepyLevel) > 4 ||
+            System.Math.Abs(gameControl.angryLevelRemaining - gameControl.startAngryLevel) > 4))
+        {
+            gameControl.sleepyLevelRemaining = gameControl.startSleepyLevel;
+            gameControl.angryLevelRemaining = gameControl.startAngryLevel;
+        }
+        else {
+            //每回合结束会记录当前回合的沉睡度及愤怒值为初始的沉睡度及愤怒值
+            gameControl.startSleepyLevel = gameControl.sleepyLevelRemaining;
+            gameControl.startAngryLevel = gameControl.angryLevelRemaining;
+        }
         //将变化沉睡度增加
         gameControl.sleepyLevelRemaining += 5;
         //表示结束敌人回合，再次进入动作卡发牌阶段
@@ -235,18 +258,26 @@ public class actionCardControl : MonoBehaviour {
         {
             case "abandon":
                 abandon();
+                RecordRFTag();
                 break;
             case "coquetry":
                 coquetry();
+                RecordRFTag();
                 break;
             case "noisy":
-                noisy();
+                //第一关沉睡者的特殊属性为免疫吵闹
+                if (gameNum != 1) {
+                    noisy();
+                    RecordRFTag();
+                }
                 break;
             case "pull":
                 pull();
+                RecordRFTag();
                 break;
             case "makeSense":
                 makeSense();
+                RecordRFTag();
                 break;
             default:
                 break;
@@ -259,125 +290,24 @@ public class actionCardControl : MonoBehaviour {
 
     void abandon()
     {
-        switch (roleField[k].tag)
+        roleFieldResponse theScript = roleField[k].GetComponent<roleFieldResponse>();
+        switch (theScript.Relation)
         {
-            case "A.情敌":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
+            //处于讨厌关系
+            case 1:
+                HatedManRsAbandon();
                 break;
-            case "B.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
+            //处于情敌关系
+            case 2:
+                RialInLoveRsAbandon();
                 break;
-            case "C.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
+            //处于同学关系
+            case 3:
+                ClassmateRsAbandon();
                 break;
-            case "D.同学":
-                gameControl.sleepyLevelRemaining -= 5;
-                angryVariableQuantity.text = "0";
-                sleepyVariableQuantity.text = "↓5";
-                break;
-            case "E.同学":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
-                Debug.Log(someNum);
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-                    actionField[k].tag = "coquetry";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-                }
-                break;
-            case "F.讨厌":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining -= 8;
-                    sleepyVariableQuantity.text = "↓8";
-                    gameControl.angryLevelRemaining += 5;
-                    angryVariableQuantity.text = "↑5";
-                    actionField[k].tag = "noisy";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining += 5;
-                    sleepyVariableQuantity.text = "↑5";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-                }
-                break;
-            case "G.同学":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 1;
-                    angryVariableQuantity.text = "↑1";
-                    actionField[k].tag = "pull";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-                }
-                break;
-            case "H.情敌":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
-                break;
-            case "I.基友":
-                gameControl.sleepyLevelRemaining -= 8;
-                sleepyVariableQuantity.text = "↓8";
-                angryVariableQuantity.text = "0";
-                break;
-            //J角色卡的特殊技能为当他不处于讨厌或情敌关系时，玩家对他打出放弃卡时，他会替代沉睡者成为boss
-            case "J.同学":
-                //enemy.GetComponent<Renderer>().material = roleMaterials[9];
-                roleField[k].GetComponent<Renderer>().material = initialMaterial;
-                roleField[k].tag = "Untagged";
-                gameControl.sleepyLevelRemaining = 50;
-                gameControl.angryLevelRemaining = 50;
-                gameControl.j--;
-                updateRoleField = true;
-                gameControl.canUseActionCard = false;
-                break;
-            case "K.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
-                break;
-            case "L.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
+            //处于基友关系
+            case 4:
+                FriendRsAbandon();
                 break;
             default:
                 break;
@@ -386,134 +316,24 @@ public class actionCardControl : MonoBehaviour {
 
     void coquetry()
     {
-        switch (roleField[k].tag)
+        roleFieldResponse theScript = roleField[k].GetComponent<roleFieldResponse>();
+        switch (theScript.Relation)
         {
-            case "A.情敌":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
-                //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
-                roleField[k].GetComponent<Renderer>().material = initialMaterial;
-                roleField[k].tag = "Untagged";
-                gameControl.j--;
-                updateRoleField = true;
-                gameControl.canUseActionCard = false;
+            //处于讨厌关系
+            case 1:
+                HatedManRsCoquetry();
                 break;
-            case "B.同学":
-                gameControl.sleepyLevelRemaining -= 5;
-                sleepyVariableQuantity.text = "↓5";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+            //处于情敌关系
+            case 2:
+                RialInLoveRsCoquetry();
                 break;
-            case "C.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
+            //处于同学关系
+            case 3:
+                ClassmateRsCoquetry();
                 break;
-            case "D.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
-                break;
-            case "E.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
-                break;
-            case "F.讨厌":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining -= 8;
-                    sleepyVariableQuantity.text = "↓8";
-                    gameControl.angryLevelRemaining += 5;
-                    angryVariableQuantity.text = "↑5";
-                    actionField[k].tag = "noisy";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining -= 8;
-                    sleepyVariableQuantity.text = "↓8";
-                    gameControl.angryLevelRemaining += 5;
-                    angryVariableQuantity.text = "↑5";
-                }
-                break;
-            case "G.同学":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 1;
-                    angryVariableQuantity.text = "↑1";
-                    actionField[k].tag = "pull";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-
-                }
-                break;
-            case "H.情敌":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-
-                    actionField[k].tag = "abandon";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 5;
-                    angryVariableQuantity.text = "↑5";
-                    //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
-                    roleField[k].GetComponent<Renderer>().material = initialMaterial;
-                    roleField[k].tag = "Untagged";
-                    gameControl.j--;
-                    gameControl.canUseActionCard = false;
-                    updateRoleField = true;
-                }
-                break;
-            case "I.基友":
-                gameControl.sleepyLevelRemaining -= 8;
-                sleepyVariableQuantity.text = "↓8";
-                angryVariableQuantity.text = "0";
-                break;
-            case "J.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
-                break;
-            case "K.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
-                break;
-            case "L.同学":
-                gameControl.sleepyLevelRemaining += 3;
-                sleepyVariableQuantity.text = "↑3";
-                gameControl.angryLevelRemaining -= 5;
-                angryVariableQuantity.text = "↓5";
+            //处于基友关系
+            case 4:
+                FriendRsCoquetry();
                 break;
             default:
                 break;
@@ -522,120 +342,24 @@ public class actionCardControl : MonoBehaviour {
 
     void noisy()
     {
-        switch (roleField[k].tag)
+        roleFieldResponse theScript = roleField[k].GetComponent<roleFieldResponse>();
+        switch (theScript.Relation)
         {
-            case "A.情敌":
-                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 - gameControl.j;
-                sleepyVariableQuantity.text = "↓" + (5 + gameControl.j).ToString();
-                gameControl.angryLevelRemaining += 5;
-                angryVariableQuantity.text = "↑5";
+            //处于讨厌关系
+            case 1:
+                HatedManRsNoisy();
                 break;
-            case "B.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+            //处于情敌关系
+            case 2:
+                RialInLoveRsNoisy();
                 break;
-            case "C.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+            //处于同学关系
+            case 3:
+                ClassmateRsNoisy();
                 break;
-            case "D.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
-                break;
-            case "E.同学":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-                    actionField[k].tag = "coquetry";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 1;
-                    angryVariableQuantity.text = "↑1";
-                }
-                break;
-            case "F.讨厌":
-                gameControl.sleepyLevelRemaining -= 8;
-                sleepyVariableQuantity.text = "↓8";
-                gameControl.angryLevelRemaining += 5;
-                angryVariableQuantity.text = "↑5";
-                break;
-            case "G.同学":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 1;
-                    angryVariableQuantity.text = "↑1";
-                    actionField[k].tag = "pull";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 1;
-                    angryVariableQuantity.text = "↑1";
-                }
-                break;
-            case "H.情敌":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-                    actionField[k].tag = "abandon";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 1;
-                    angryVariableQuantity.text = "↑1";
-                }
-                break;
-            case "I.基友":
-                gameControl.sleepyLevelRemaining -= 8;
-                sleepyVariableQuantity.text = "↓8";
-                angryVariableQuantity.text = "0";
-                break;
-            case "J.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
-                break;
-            case "K.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
-                break;
-            case "L.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+            //处于基友关系
+            case 4:
+                FriendRsNoisy();
                 break;
             default:
                 break;
@@ -644,120 +368,24 @@ public class actionCardControl : MonoBehaviour {
 
     void pull()
     {
-        switch (roleField[k].tag)
+        roleFieldResponse theScript = roleField[k].GetComponent<roleFieldResponse>();
+        switch (theScript.Relation)
         {
-            case "A.情敌":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+            //处于讨厌关系
+            case 1:
+                HatedManRsPull();
                 break;
-            case "B.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+            //处于情敌关系
+            case 2:
+                RialInLoveRsPull();
                 break;
-            case "C.同学":
-                gameControl.sleepyLevelRemaining -= 10;
-                sleepyVariableQuantity.text = "↓10";
-                gameControl.angryLevelRemaining += 10;
-                angryVariableQuantity.text = "↑10";
+            //处于同学关系
+            case 3:
+                ClassmateRsPull();
                 break;
-            case "D.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
-                break;
-            case "E.同学":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-                    actionField[k].tag = "coquetry";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 1;
-                    angryVariableQuantity.text = "↑1";
-                }
-                break;
-            case "F.讨厌":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining -= 8;
-                    sleepyVariableQuantity.text = "↓8";
-                    gameControl.angryLevelRemaining += 5;
-                    angryVariableQuantity.text = "↑5";
-                    actionField[k].tag = "noisy";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining -= 8;
-                    sleepyVariableQuantity.text = "↓8";
-                    gameControl.angryLevelRemaining += 5;
-                    angryVariableQuantity.text = "↑5";
-                }
-                break;
-            case "G.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
-                break;
-            case "H.情敌":
-                someNum = Random.Range(0, 2);
-                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
-                if (someNum == 0)
-                {
-                    gameControl.sleepyLevelRemaining += 3;
-                    sleepyVariableQuantity.text = "↑3";
-                    gameControl.angryLevelRemaining -= 5;
-                    angryVariableQuantity.text = "↓5";
-                    actionField[k].tag = "abandon";
-                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
-                }
-                else
-                {
-                    gameControl.sleepyLevelRemaining -= 3;
-                    sleepyVariableQuantity.text = "↓3";
-                    gameControl.angryLevelRemaining += 1;
-                    angryVariableQuantity.text = "↑1";
-                }
-                break;
-            case "I.基友":
-                gameControl.sleepyLevelRemaining -= 8;
-                sleepyVariableQuantity.text = "↓8";
-                angryVariableQuantity.text = "0";
-                break;
-            case "J.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
-                break;
-            case "K.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
-                break;
-            case "L.同学":
-                gameControl.sleepyLevelRemaining -= 3;
-                sleepyVariableQuantity.text = "↓3";
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+            //处于基友关系
+            case 4:
+                FriendRsPull();
                 break;
             default:
                 break;
@@ -769,6 +397,1096 @@ public class actionCardControl : MonoBehaviour {
         gameControl.angryLevelRemaining -= 8;
         sleepyVariableQuantity.text = "0";
         angryVariableQuantity.text = "↓8";
+    }
+
+    //同学关系下的各角色卡对放弃动作卡的响应方法
+    void ClassmateRsAbandon() {
+
+        switch (roleField[k].tag)
+        {
+            case "D":
+                gameControl.sleepyLevelRemaining -= 5;
+                angryVariableQuantity.text = "0";
+                sleepyVariableQuantity.text = "↓5";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalNsOrPlResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            //J角色卡的特殊技能为当他不处于讨厌或情敌关系时，玩家对他打出放弃卡时，他会替代沉睡者成为boss
+            case "J":
+                enemy.GetComponent<Renderer>().material = J;
+                roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                roleField[k].tag = "Untagged";
+                gameControl.sleepyLevelRemaining = 50;
+                gameControl.angryLevelRemaining = 50;
+                gameControl.j--;
+                updateRoleField = true;
+                gameControl.canUseActionCard = false;
+                break;
+            default:
+                NormalAbOrCqResponse();
+                break;
+        }
+    }
+
+    //同学关系下的各角色卡对撒娇动作卡的响应方法
+    void ClassmateRsCoquetry()
+    {
+        switch (roleField[k].tag)
+        {
+            case "B":
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 + gameControl.j;
+                sleepyVariableQuantity.text = "↓" + (5 - gameControl.j).ToString();
+                gameControl.angryLevelRemaining += 1;
+                angryVariableQuantity.text = "↑1";
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalNsOrPlResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            default:
+                NormalAbOrCqResponse();
+                break;
+        }
+    }
+
+    //同学关系下的各角色卡对吵闹动作卡的响应方法
+    void ClassmateRsNoisy()
+    {
+        switch (roleField[k].tag)
+        {
+            case "A":
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 - gameControl.j;
+                sleepyVariableQuantity.text = "↓" + (5 + gameControl.j).ToString();
+                gameControl.angryLevelRemaining += 5;
+                angryVariableQuantity.text = "↑5";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalNsOrPlResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            default:
+                NormalNsOrPlResponse();
+                break;
+        }
+    }
+
+    //同学关系下的各角色卡对硬拽动作卡的响应方法
+    void ClassmateRsPull()
+    {
+        switch (roleField[k].tag)
+        {
+            case "C":
+                gameControl.sleepyLevelRemaining -= 10;
+                sleepyVariableQuantity.text = "↓10";
+                gameControl.angryLevelRemaining += 10;
+                angryVariableQuantity.text = "↑10";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            default:
+                NormalNsOrPlResponse();
+                break;
+        }
+    }
+
+    //情敌关系下的各角色卡对放弃动作卡的响应方法
+    void RialInLoveRsAbandon()
+    {
+        switch (roleField[k].tag)
+        {
+            case "D":
+                gameControl.sleepyLevelRemaining -= 5;
+                angryVariableQuantity.text = "0";
+                sleepyVariableQuantity.text = "↓5";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                    //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
+                    roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                    roleField[k].tag = "Untagged";
+                    gameControl.j--;
+                    updateRoleField = true;
+                    gameControl.canUseActionCard = false;
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalNsOrPlResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                }
+                break;
+            default:
+                NormalAbOrCqResponse();
+                break;
+        }
+    }
+
+    //情敌关系下的各角色卡对撒娇动作卡的响应方法
+    void RialInLoveRsCoquetry()
+    {
+        switch (roleField[k].tag)
+        {
+            case "B":
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 + gameControl.j;
+                sleepyVariableQuantity.text = "↓" + (5 - gameControl.j).ToString();
+                gameControl.angryLevelRemaining += 1;
+                angryVariableQuantity.text = "↑1";
+                //当情敌关系的B角色卡打出撒娇时，将战场中的角色卡全部从游戏中除外
+                for (int i = k; i >= 0; i--) {
+                    roleField[i].GetComponent<Renderer>().material = initialMaterial;
+                    roleField[i].tag = "Untagged";
+                    gameControl.j--;
+                    gameControl.canUseActionCard = false;
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                    //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
+                    roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                    roleField[k].tag = "Untagged";
+                    gameControl.j--;
+                    updateRoleField = true;
+                    gameControl.canUseActionCard = false;
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalNsOrPlResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                    //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
+                    roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                    roleField[k].tag = "Untagged";
+                    gameControl.j--;
+                    updateRoleField = true;
+                    gameControl.canUseActionCard = false;
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalAbOrCqResponse();
+                    //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
+                    roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                    roleField[k].tag = "Untagged";
+                    gameControl.j--;
+                    updateRoleField = true;
+                    gameControl.canUseActionCard = false;
+                }
+                break;
+            case "I":
+                //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
+                roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                roleField[k].tag = "Untagged";
+                gameControl.j--;
+                updateRoleField = true;
+                gameControl.canUseActionCard = false;
+                gameControl.sleepyLevelRemaining += 10;
+                sleepyVariableQuantity.text = "↑10";
+                gameControl.angryLevelRemaining += 5;
+                angryVariableQuantity.text = "↑5";
+                break;
+            default:
+                NormalAbOrCqResponse();
+                //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
+                roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                roleField[k].tag = "Untagged";
+                gameControl.j--;
+                updateRoleField = true;
+                gameControl.canUseActionCard = false;
+                break;
+        }
+    }
+
+    //情敌关系下的各角色卡对吵闹动作卡的响应方法
+    void RialInLoveRsNoisy()
+    {
+        switch (roleField[k].tag)
+        {
+            case "A":
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 - gameControl.j;
+                sleepyVariableQuantity.text = "↓" + (5 + gameControl.j).ToString();
+                gameControl.angryLevelRemaining += 5;
+                angryVariableQuantity.text = "↑5";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                    //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
+                    roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                    roleField[k].tag = "Untagged";
+                    gameControl.j--;
+                    updateRoleField = true;
+                    gameControl.canUseActionCard = false;
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalNsOrPlResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            default:
+                NormalNsOrPlResponse();
+                break;
+        }
+    }
+
+    //情敌关系下的各角色卡对硬拽动作卡的响应方法
+    void RialInLoveRsPull()
+    {
+        switch (roleField[k].tag)
+        {
+            case "C":
+                gameControl.sleepyLevelRemaining -= 10;
+                sleepyVariableQuantity.text = "↓10";
+                gameControl.angryLevelRemaining += 10;
+                angryVariableQuantity.text = "↑10";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                    //当情敌关系的角色卡打出撒娇时，将角色卡区域还原为初始材质，并去除标签，类似将该名角色卡从游戏中除外
+                    roleField[k].GetComponent<Renderer>().material = initialMaterial;
+                    roleField[k].tag = "Untagged";
+                    gameControl.j--;
+                    updateRoleField = true;
+                    gameControl.canUseActionCard = false;
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalAbOrCqResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalNsOrPlResponse();
+                }
+                break;
+            default:
+                NormalNsOrPlResponse();
+                break;
+        }
+    }
+
+    //基友关系下的各角色卡对放弃动作卡的响应方法
+    void FriendRsAbandon()
+    {
+        switch (roleField[k].tag)
+        {
+            case "D":
+                gameControl.sleepyLevelRemaining -= 10;
+                angryVariableQuantity.text = "0";
+                sleepyVariableQuantity.text = "↓10";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "I":
+                gameControl.sleepyLevelRemaining -= 16;
+                sleepyVariableQuantity.text = "↓16";
+                angryVariableQuantity.text = "0";
+                break;
+            default:
+                NormalFriendResponse();
+                break;
+        }
+    }
+
+    //基友关系下的各角色卡对撒娇动作卡的响应方法
+    void FriendRsCoquetry()
+    {
+        switch (roleField[k].tag)
+        {
+            case "B":
+                //处于基友关系时，限制条件更改
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 - gameControl.j;
+                sleepyVariableQuantity.text = "↓" + (5 + gameControl.j).ToString();
+                gameControl.angryLevelRemaining += 1;
+                angryVariableQuantity.text = "↑1";
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "I":
+                gameControl.sleepyLevelRemaining -= 16;
+                sleepyVariableQuantity.text = "↓16";
+                angryVariableQuantity.text = "0";
+                break;
+            default:
+                NormalFriendResponse();
+                break;
+        }
+    }
+
+    //基友关系下的各角色卡对吵闹动作卡的响应方法
+    void FriendRsNoisy()
+    {
+        switch (roleField[k].tag)
+        {
+            case "A":
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 - gameControl.j;
+                sleepyVariableQuantity.text = "↓" + (5 + gameControl.j).ToString();
+                gameControl.angryLevelRemaining += 5;
+                angryVariableQuantity.text = "↑5";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "I":
+                gameControl.sleepyLevelRemaining -= 16;
+                sleepyVariableQuantity.text = "↓16";
+                angryVariableQuantity.text = "0";
+                break;
+            default:
+                NormalFriendResponse();
+                break;
+        }
+    }
+
+    //基友关系下的各角色卡对硬拽动作卡的响应方法
+    void FriendRsPull()
+    {
+        switch (roleField[k].tag)
+        {
+            case "C":
+                gameControl.sleepyLevelRemaining -= 10;
+                sleepyVariableQuantity.text = "↓10";
+                angryVariableQuantity.text = "0";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    NormalFriendResponse();
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalFriendResponse();
+                }
+                break;
+            case "I":
+                gameControl.sleepyLevelRemaining -= 16;
+                sleepyVariableQuantity.text = "↓16";
+                angryVariableQuantity.text = "0";
+                break;
+            default:
+                NormalFriendResponse();
+                break;
+        }
+    }
+
+    //讨厌关系下的各角色卡对放弃动作卡的响应方法
+    void HatedManRsAbandon()
+    {
+        switch (roleField[k].tag)
+        {
+            case "D":
+                gameControl.sleepyLevelRemaining += 5;
+                sleepyVariableQuantity.text = "↑5";
+                gameControl.angryLevelRemaining += 1;
+                angryVariableQuantity.text = "↑1";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalHatedManRs();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    gameControl.sleepyLevelRemaining += 5;
+                    sleepyVariableQuantity.text = "↑5";
+                    gameControl.angryLevelRemaining -= 5;
+                    angryVariableQuantity.text = "↓5";
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    gameControl.sleepyLevelRemaining += 5;
+                    sleepyVariableQuantity.text = "↑5";
+                    gameControl.angryLevelRemaining -= 5;
+                    angryVariableQuantity.text = "↓5";
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalHatedManRs();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    gameControl.sleepyLevelRemaining += 5;
+                    sleepyVariableQuantity.text = "↑5";
+                    gameControl.angryLevelRemaining -= 5;
+                    angryVariableQuantity.text = "↓5";
+                }
+                break;
+            case "I":
+                gameControl.sleepyLevelRemaining -= 10;
+                sleepyVariableQuantity.text = "↓10";
+                gameControl.angryLevelRemaining += 20;
+                angryVariableQuantity.text = "↑20";
+                break;
+            default:
+                gameControl.sleepyLevelRemaining += 5;
+                sleepyVariableQuantity.text = "↑5";
+                gameControl.angryLevelRemaining -= 5;
+                angryVariableQuantity.text = "↓5";
+                break;
+        }
+    }
+
+    //讨厌关系下的各角色卡对撒娇动作卡的响应方法
+    void HatedManRsCoquetry()
+    {
+        switch (roleField[k].tag)
+        {
+            case "B":
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 + gameControl.j;
+                sleepyVariableQuantity.text = "↓" + (5 - gameControl.j).ToString();
+                gameControl.angryLevelRemaining += 1;
+                angryVariableQuantity.text = "↑1";
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalHatedManRs();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    gameControl.sleepyLevelRemaining += 5;
+                    sleepyVariableQuantity.text = "↑5";
+                    gameControl.angryLevelRemaining -= 5;
+                    angryVariableQuantity.text = "↓5";
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "I":
+                gameControl.sleepyLevelRemaining -= 10;
+                sleepyVariableQuantity.text = "↓10";
+                gameControl.angryLevelRemaining += 20;
+                angryVariableQuantity.text = "↑20";
+                break;
+            default:
+                NormalHatedManRs();
+                break;
+        }
+    }
+
+    //讨厌关系下的各角色卡对吵闹动作卡的响应方法
+    void HatedManRsNoisy()
+    {
+        switch (roleField[k].tag)
+        {
+            case "A":
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 + gameControl.j;
+                sleepyVariableQuantity.text = "↓" + (5 - gameControl.j).ToString();
+                gameControl.angryLevelRemaining += 1;
+                angryVariableQuantity.text = "↑1";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalHatedManRs();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "G":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为硬拽的效果
+                if (someNum == 0)
+                {
+                    NormalHatedManRs();
+                    actionField[k].tag = "pull";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[3];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    gameControl.sleepyLevelRemaining += 5;
+                    sleepyVariableQuantity.text = "↑5";
+                    gameControl.angryLevelRemaining -= 5;
+                    angryVariableQuantity.text = "↓5";
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "I":
+                gameControl.sleepyLevelRemaining -= 10;
+                sleepyVariableQuantity.text = "↓10";
+                gameControl.angryLevelRemaining += 20;
+                angryVariableQuantity.text = "↑20";
+                break;
+            default:
+                NormalHatedManRs();
+                break;
+        }
+    }
+
+    //讨厌关系下的各角色卡对硬拽动作卡的响应方法
+    void HatedManRsPull()
+    {
+        switch (roleField[k].tag)
+        {
+            case "C":
+                gameControl.sleepyLevelRemaining -= 15;
+                sleepyVariableQuantity.text = "↓15";
+                gameControl.angryLevelRemaining += 20;
+                angryVariableQuantity.text = "↑20";
+                break;
+            case "E":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为撒娇的效果
+                if (someNum == 0)
+                {
+                    NormalHatedManRs();
+                    actionField[k].tag = "coquetry";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[1];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "F":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为吵闹的效果
+                if (someNum == 0)
+                {
+                    if (gameNum != 1)
+                        NormalNsOrPlResponse();
+                    actionField[k].tag = "noisy";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[2];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "H":
+                someNum = Random.Range(0, 2);
+                //当随机数为0时，触发该角色卡改变动作卡为放弃的效果
+                if (someNum == 0)
+                {
+                    gameControl.sleepyLevelRemaining += 5;
+                    sleepyVariableQuantity.text = "↑5";
+                    gameControl.angryLevelRemaining -= 5;
+                    angryVariableQuantity.text = "↓5";
+                    actionField[k].tag = "abandon";
+                    actionField[k].GetComponent<Renderer>().material = actionCardMaterials[0];
+                }
+                else
+                {
+                    NormalHatedManRs();
+                }
+                break;
+            case "I":
+                gameControl.sleepyLevelRemaining -= 10;
+                sleepyVariableQuantity.text = "↓10";
+                gameControl.angryLevelRemaining += 20;
+                angryVariableQuantity.text = "↑20";
+                break;
+            default:
+                NormalHatedManRs();
+                break;
+        }
     }
 
     //在游戏过程中某角色卡被移除出战场后，进行位置的更新
@@ -791,6 +1509,95 @@ public class actionCardControl : MonoBehaviour {
             }
             
             updateRoleField = false;
+        }
+    }
+
+    //不涉及人物特殊技能的情况下，同学关系者撒娇及放弃动作卡的响应
+    private void NormalAbOrCqResponse() {
+        //第二关的沉睡者的属性为过度响应，对各种动作卡的响应都会大幅度改变
+        if (gameNum == 2)
+        {
+            gameControl.sleepyLevelRemaining += 6;
+            sleepyVariableQuantity.text = "↑6";
+            gameControl.angryLevelRemaining -= 10;
+            angryVariableQuantity.text = "↓10";
+        }
+        else {
+            gameControl.sleepyLevelRemaining += 3;
+            sleepyVariableQuantity.text = "↑3";
+            gameControl.angryLevelRemaining -= 5;
+            angryVariableQuantity.text = "↓5";
+        }
+    }
+
+    //不涉及人物特殊技能的情况下，同学关系者对吵闹及硬拽动作卡的响应
+    private void NormalNsOrPlResponse()
+    {
+        //第二关的沉睡者的属性为过度响应，对各种动作卡的响应都会大幅度改变
+        if (gameNum == 2)
+        {
+            gameControl.sleepyLevelRemaining -= 6;
+            sleepyVariableQuantity.text = "↓6";
+            gameControl.angryLevelRemaining += 10;
+            angryVariableQuantity.text = "↑10";
+        }
+        else {
+            gameControl.sleepyLevelRemaining -= 3;
+            sleepyVariableQuantity.text = "↓3";
+            gameControl.angryLevelRemaining += 1;
+            angryVariableQuantity.text = "↑1";
+        }
+    }
+
+    //不涉及人物技能的情况下，基友关系者打出任何动作卡的响应
+    private void NormalFriendResponse() {
+        //第二关的沉睡者的属性为过度响应，对各种动作卡的响应都会大幅度改变
+        if (gameNum == 2)
+        {
+            gameControl.sleepyLevelRemaining -= 10;
+            sleepyVariableQuantity.text = "↓10";
+            angryVariableQuantity.text = "0";
+        }
+        else
+        {
+            gameControl.sleepyLevelRemaining -= 8;
+            sleepyVariableQuantity.text = "↓8";
+            angryVariableQuantity.text = "0";
+        }
+    }
+
+    //不涉及人物技能的情况下，讨厌关系者打出除放弃以外的动作卡响应
+    private void NormalHatedManRs() {
+        //第二关的沉睡者的属性为过度响应，对各种动作卡的响应都会大幅度改变
+        if (gameNum == 2)
+        {
+            gameControl.sleepyLevelRemaining -= 10;
+            sleepyVariableQuantity.text = "↓10";
+            gameControl.angryLevelRemaining += 20;
+            angryVariableQuantity.text = "↑20";
+        }
+        else
+        {
+            gameControl.sleepyLevelRemaining -= 8;
+            sleepyVariableQuantity.text = "↓8";
+            gameControl.angryLevelRemaining += 5;
+            angryVariableQuantity.text = "↑5";
+        }
+    }
+
+    //当一回合内使沉睡度减少10%或者增加15%时，记录完成该变化的角色卡标签
+    void RecordRFTag()
+    {
+        if (gameControl.sleepyLevelRemaining - gameControl.startSleepyLevel >= 15)
+        {
+            curRFTag = roleField[k].tag;
+            //true表示增加
+            AddOrReduce = true;
+        }
+        if (gameControl.startSleepyLevel - gameControl.sleepyLevelRemaining >= 10) {
+            curRFTag = roleField[k].tag;
+            //false表示减少
+            AddOrReduce = false;
         }
     }
 }

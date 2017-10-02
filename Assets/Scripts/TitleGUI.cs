@@ -22,7 +22,7 @@ public class TitleGUI : MonoBehaviour {
             "室的起床大作战。";
         //如果点击了场景中的了解规则按钮，则进入规则解说界面
         GoToRule.onClick.AddListener(delegate () {
-            Application.LoadLevel("rule");
+            Application.LoadLevel("game1");
         });
     }
 }
