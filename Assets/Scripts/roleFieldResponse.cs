@@ -9,7 +9,8 @@ public class roleFieldResponse : MonoBehaviour {
     private Image image;//用来存储场景中的image组件
     public Material initialMaterial;//战场的初始材质
     public int Relation = 0;//象征角色与Boss之间关系的数字
-    private string CurTag = "Untagged";//记录角色卡区域当前的标签 
+    private string CurTag = "Untagged";//记录角色卡区域当前的标签
+    public int gameNum;//用来记录当前是第几关
 
     // Use this for initialization
     void Start () {
@@ -124,8 +125,68 @@ public class roleFieldResponse : MonoBehaviour {
         image.material = initialMaterial;
     }
 
-    //根据角色卡与Boss之间的关系，赋予角色区域不同的数字
+    //根据当前关卡，调用不同的赋值方法
     void RBRelation() {
+        switch (gameNum) {
+            case 1:
+                game1();
+                break;
+            case 2:
+                game2();
+                break;
+            case 3:
+                game3();
+                break;
+            case 4:
+                game4();
+                break;
+            case 5:
+                game5();
+                break;
+            default:
+                break;
+        }
+    }
+
+    //根据角色卡与Boss之间的关系，赋予角色区域不同的数字
+    void game1()
+    {
+        if (this.tag == "I")
+            Relation = 4;
+        else if (this.tag == "B")
+            Relation = 1;
+        else if (this.tag == "C" || this.tag == "K" || this.tag == "F")
+            Relation = 2;
+        else
+            Relation = 3;
+    }
+
+    void game2()
+    {
+        if (this.tag == "G")
+            Relation = 4;
+        else if (this.tag == "H" || this.tag == "E")
+            Relation = 1;
+        else if (this.tag == "J" || this.tag == "C")
+            Relation = 2;
+        else
+            Relation = 3;
+    }
+
+    void game3()
+    {
+        if (this.tag == "A")
+            Relation = 4;
+        else if (this.tag == "B")
+            Relation = 1;
+        else if (this.tag == "C")
+            Relation = 2;
+        else
+            Relation = 3;
+    }
+
+    void game4()
+    {
         if (this.tag == "A" || this.tag == "H")
         {
             //2代表情敌关系
@@ -136,14 +197,26 @@ public class roleFieldResponse : MonoBehaviour {
             //1代表讨厌关系
             Relation = 1;
         }
-        else if (this.tag == "I")
+        else if (this.tag == "G")
         {
             //4代表基友关系
             Relation = 4;
         }
-        else {
+        else
+        {
             //3代表同学关系
             Relation = 3;
         }
+    }
+
+    void game5() {
+        if (this.tag == "C")
+            Relation = 4;
+        else if (this.tag == "A")
+            Relation = 1;
+        else if (this.tag == "E" || this.tag == "K" || this.tag == "D")
+            Relation = 2;
+        else
+            Relation = 3;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class actionCardControl : MonoBehaviour {
@@ -12,13 +13,13 @@ public class actionCardControl : MonoBehaviour {
     public List<Material> actionMaterials = new List<Material>();//存储所需的动作卡材质的List集合
     public List<GameObject> actionField = new List<GameObject>();//动作卡置入战场后的区域
     public List<GameObject> actionDeck = new List<GameObject>();//存储初始化动作卡卡组的List集合
-    int i = 0;//actionDeck[]的下标
-    public static int k = 0;//actionField数组的下标,由于每次回合开始都会从左至右再依次打出动作卡，故设置为静态变量
+    int i;//actionDeck[]的下标
+    public static int k;//actionField数组的下标,由于每次回合开始都会从左至右再依次打出动作卡，故设置为静态变量
     int someNum;//为赋予不同动作卡材质产生的随机数
     private List<int> result = new List<int>(48);//存储为赋予不同动作卡材质产生的随机数
     public Button buttonPrefab;//标志回合结束，并标明下回合开始将两张动作卡卡加入手牌的结束回合按钮
     private bool ActionCardGenerating;//表明现在是否为动作卡发牌阶段的布尔值
-    public static int canUseActionCardAmount = 0;//能使用的动作卡数量
+    public static int canUseActionCardAmount;//能使用的动作卡数量
 
     public Material initialMaterial;//战场的初始材质
     public List<Material> actionCardMaterials = new List<Material>();
@@ -38,6 +39,9 @@ public class actionCardControl : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        i = 0;
+        k = 0;
+        canUseActionCardAmount = gameControl.j;
         xOffset = card01.position.x - card03.position.x;
         //创建初始动作卡卡组
         BuildDeck();
@@ -72,7 +76,7 @@ public class actionCardControl : MonoBehaviour {
         }
         //手牌数改变后，执行该方法使手牌位置相应的改动
         UpdateShow();
-
+        //因为在对应关系及人物技能使得角色卡从游戏中除外时，更新角色卡区域
         if (updateRoleField)
         {
            updateRoleFields();
@@ -126,15 +130,36 @@ public class actionCardControl : MonoBehaviour {
             }
             actionDeck[i].transform.rotation = Quaternion.Euler(90, 0, 0);
             cards.Add(actionDeck[i]);
-            // CardGenerating = false;
             i++;
+        }
+    }
+
+    //失败后的操作
+    void loseGame()
+    {
+        switch (gameNum) {
+            case 1:
+                SceneManager.LoadScene("game1", LoadSceneMode.Single);
+                break;
+            case 2:
+                SceneManager.LoadScene("game2", LoadSceneMode.Single);
+                break;
+            case 3:
+                SceneManager.LoadScene("game3", LoadSceneMode.Single);
+                break;
+            case 4:
+                SceneManager.LoadScene("game4", LoadSceneMode.Single);
+                break;
+            case 5:
+                SceneManager.LoadScene("game5", LoadSceneMode.Single);
+                break;
+            default:
+                break;
         }
     }
 
     private void enterBattlefield()
     {
-        //由于点击鼠标后，预制件会被破坏，因此无法执行脚本中的OnMouseExit函数，故在点击后就直接将showActionInformation破坏
-
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); //定义一条射线，这条射线从摄像机屏幕射向鼠标所在位置
         RaycastHit hit; //声明一个碰撞的点(暂且理解为碰撞的交点)
         if (Physics.Raycast(ray, out hit)) //如果真的发生了碰撞，ray这条射线在hit点与别的物体碰撞了
@@ -206,36 +231,58 @@ public class actionCardControl : MonoBehaviour {
 
     private void EnemyTurn()
     {
-        //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
-        if (gameNum == 2 && (System.Math.Abs(gameControl.sleepyLevelRemaining - gameControl.startSleepyLevel) > 4 ||
-            System.Math.Abs(gameControl.angryLevelRemaining - gameControl.startAngryLevel) > 4))
+        //动作卡抽完判负
+        if (i == 48)
         {
-            gameControl.sleepyLevelRemaining = gameControl.startSleepyLevel;
-            gameControl.angryLevelRemaining = gameControl.startAngryLevel;
-        }
-        else {
-            //每回合结束会记录当前回合的沉睡度及愤怒值为初始的沉睡度及愤怒值
-            gameControl.startSleepyLevel = gameControl.sleepyLevelRemaining;
-            gameControl.startAngryLevel = gameControl.angryLevelRemaining;
-        }
-        //将变化沉睡度增加
-        gameControl.sleepyLevelRemaining += 5;
-        //表示结束敌人回合，再次进入动作卡发牌阶段
-        ActionCardGenerating = true;
-        //当结束回合之后，下回合打出的动作卡会依次重新置入动作卡区域
-        k = 0;
-        //每次结束回合后，令可使用的动作卡数等于当前战场上的角色卡数
-        canUseActionCardAmount = gameControl.j;
-        //当角色卡区域被置满角色卡后，则无法再打出角色卡
-        if (gameControl.j > 4)
-        {
-            gameControl.canUseRoleCard = false;
+            loseGame();
         }
         else
         {
-            gameControl.canUseRoleCard = true;
+            //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
+            if (gameNum == 3 && (System.Math.Abs(gameControl.sleepyLevelRemaining - gameControl.startSleepyLevel) > 20 ||
+                System.Math.Abs(gameControl.angryLevelRemaining - gameControl.startAngryLevel) > 20))
+            {
+                gameControl.sleepyLevelRemaining = gameControl.startSleepyLevel;
+                gameControl.angryLevelRemaining = gameControl.startAngryLevel;
+            }
+            else
+            {
+                //每回合结束会记录当前回合的沉睡度及愤怒值为初始的沉睡度及愤怒值
+                gameControl.startSleepyLevel = gameControl.sleepyLevelRemaining;
+                gameControl.startAngryLevel = gameControl.angryLevelRemaining;
+            }
+            //将变化沉睡度增加
+            //根据不同关卡定义增加量
+            if (gameNum == 2)
+            {
+                gameControl.sleepyLevelRemaining += 3;
+                gameControl.angryLevelRemaining += 5;
+            }
+            else if (gameNum == 1)
+            {
+                gameControl.sleepyLevelRemaining += 10;
+            }
+            else
+            {
+                gameControl.sleepyLevelRemaining += 5;
+            }
+            //表示结束敌人回合，再次进入动作卡发牌阶段
+            ActionCardGenerating = true;
+            //当结束回合之后，下回合打出的动作卡会依次重新置入动作卡区域
+            k = 0;
+            //每次结束回合后，令可使用的动作卡数等于当前战场上的角色卡数
+            canUseActionCardAmount = gameControl.j;
+            //当角色卡区域被置满角色卡后，则无法再打出角色卡
+            if (gameControl.j > 4)
+            {
+                gameControl.canUseRoleCard = false;
+            }
+            else
+            {
+                gameControl.canUseRoleCard = true;
+            }
+            gameControl.canUseActionCard = true;
         }
-        gameControl.canUseActionCard = true;
     }
 
     void UpdateShow()
@@ -266,7 +313,7 @@ public class actionCardControl : MonoBehaviour {
                 break;
             case "noisy":
                 //第一关沉睡者的特殊属性为免疫吵闹
-                if (gameNum != 1) {
+                if (gameNum != 4) {
                     noisy();
                     RecordRFTag();
                 }
@@ -475,10 +522,10 @@ public class actionCardControl : MonoBehaviour {
         switch (roleField[k].tag)
         {
             case "B":
-                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 + gameControl.j;
-                sleepyVariableQuantity.text = "↓" + (5 - gameControl.j).ToString();
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5;
+                sleepyVariableQuantity.text = "↓5";
+                gameControl.angryLevelRemaining -= 5;
+                angryVariableQuantity.text = "↓5";
                 break;
             case "F":
                 someNum = Random.Range(0, 2);
@@ -719,10 +766,10 @@ public class actionCardControl : MonoBehaviour {
         switch (roleField[k].tag)
         {
             case "B":
-                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 + gameControl.j;
-                sleepyVariableQuantity.text = "↓" + (5 - gameControl.j).ToString();
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5;
+                sleepyVariableQuantity.text = "↓5";
+                gameControl.angryLevelRemaining -= 5;
+                angryVariableQuantity.text = "↓5";
                 //当情敌关系的B角色卡打出撒娇时，将战场中的角色卡全部从游戏中除外
                 for (int i = k; i >= 0; i--) {
                     roleField[i].GetComponent<Renderer>().material = initialMaterial;
@@ -1017,11 +1064,11 @@ public class actionCardControl : MonoBehaviour {
         switch (roleField[k].tag)
         {
             case "B":
-                //处于基友关系时，限制条件更改
-                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 - gameControl.j;
-                sleepyVariableQuantity.text = "↓" + (5 + gameControl.j).ToString();
-                gameControl.angryLevelRemaining += 1;
-                angryVariableQuantity.text = "↑1";
+                //处于基友关系时，响应翻倍
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 10;
+                sleepyVariableQuantity.text = "↓10";
+                gameControl.angryLevelRemaining -= 10;
+                angryVariableQuantity.text = "↓10";
                 break;
             case "F":
                 someNum = Random.Range(0, 2);
@@ -1083,8 +1130,8 @@ public class actionCardControl : MonoBehaviour {
         switch (roleField[k].tag)
         {
             case "A":
-                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 - gameControl.j;
-                sleepyVariableQuantity.text = "↓" + (5 + gameControl.j).ToString();
+                gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 - gameControl.j * 2;
+                sleepyVariableQuantity.text = "↓" + (5 + gameControl.j * 2).ToString();
                 gameControl.angryLevelRemaining += 5;
                 angryVariableQuantity.text = "↑5";
                 break;
@@ -1289,6 +1336,7 @@ public class actionCardControl : MonoBehaviour {
         switch (roleField[k].tag)
         {
             case "B":
+                //讨厌关系下，战场每多一名其他角色，唤醒效率减1
                 gameControl.sleepyLevelRemaining = gameControl.sleepyLevelRemaining - 5 + gameControl.j;
                 sleepyVariableQuantity.text = "↓" + (5 - gameControl.j).ToString();
                 gameControl.angryLevelRemaining += 1;
@@ -1494,7 +1542,8 @@ public class actionCardControl : MonoBehaviour {
     {
         for (int i = 0; i < 5; i++)
         {
-            while (roleField[i].tag == "Untagged")
+            //updateRoleField防止在更新从游戏中除外的角色卡区域后，再次进入该循环
+            while (roleField[i].tag == "Untagged" && updateRoleField)
             {
                 //在将某角色卡移除以后，修改曾记录的K的角色卡位置
                 if (gameControl.KinBattlefield && gameControl.positionOfK > i)
@@ -1503,19 +1552,25 @@ public class actionCardControl : MonoBehaviour {
                 }
                 for (int j = i; j < 5; j++)
                 {
-                    roleField[j].GetComponent<Renderer>().material = roleField[j + 1].GetComponent<Renderer>().material;
-                    roleField[j].tag = roleField[j + 1].tag;
+                    if (j != 4)
+                    {
+                        roleField[j].GetComponent<Renderer>().material = roleField[j + 1].GetComponent<Renderer>().material;
+                        roleField[j].tag = roleField[j + 1].tag;
+                    }
+                    else {
+                        roleField[j].GetComponent<Renderer>().material = initialMaterial;
+                        roleField[j].tag = "Untagged";
+                    }
                 }
+                updateRoleField = false;
             }
-            
-            updateRoleField = false;
         }
     }
 
     //不涉及人物特殊技能的情况下，同学关系者撒娇及放弃动作卡的响应
     private void NormalAbOrCqResponse() {
         //第二关的沉睡者的属性为过度响应，对各种动作卡的响应都会大幅度改变
-        if (gameNum == 2)
+        if (gameNum == 3)
         {
             gameControl.sleepyLevelRemaining += 6;
             sleepyVariableQuantity.text = "↑6";
@@ -1534,7 +1589,7 @@ public class actionCardControl : MonoBehaviour {
     private void NormalNsOrPlResponse()
     {
         //第二关的沉睡者的属性为过度响应，对各种动作卡的响应都会大幅度改变
-        if (gameNum == 2)
+        if (gameNum == 3)
         {
             gameControl.sleepyLevelRemaining -= 6;
             sleepyVariableQuantity.text = "↓6";
@@ -1552,7 +1607,7 @@ public class actionCardControl : MonoBehaviour {
     //不涉及人物技能的情况下，基友关系者打出任何动作卡的响应
     private void NormalFriendResponse() {
         //第二关的沉睡者的属性为过度响应，对各种动作卡的响应都会大幅度改变
-        if (gameNum == 2)
+        if (gameNum == 3)
         {
             gameControl.sleepyLevelRemaining -= 10;
             sleepyVariableQuantity.text = "↓10";
@@ -1569,7 +1624,7 @@ public class actionCardControl : MonoBehaviour {
     //不涉及人物技能的情况下，讨厌关系者打出除放弃以外的动作卡响应
     private void NormalHatedManRs() {
         //第二关的沉睡者的属性为过度响应，对各种动作卡的响应都会大幅度改变
-        if (gameNum == 2)
+        if (gameNum == 3)
         {
             gameControl.sleepyLevelRemaining -= 10;
             sleepyVariableQuantity.text = "↓10";

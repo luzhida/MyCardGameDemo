@@ -26,13 +26,37 @@ desktop: 1366x768 60Hz; virtual: 1366x768 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 4.828540 ms
+UnloadTime: 4.497931 ms
 Setting up 2 worker threads for Enlighten.
-  Thread -> id: 193c -> priority: 1 
-  Thread -> id: 1938 -> priority: 1 
+  Thread -> id: 1558 -> priority: 1 
+  Thread -> id: 1794 -> priority: 1 
 Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 6.052460 ms
+UnloadTime: 6.115271 ms
 
 Unloading 6 unused Assets to reduce memory usage. Loaded Objects now: 581.
-Total: 0.439619 ms (FindLiveObjects: 0.044475 ms CreateObjectMapping: 0.030362 ms MarkObjects: 0.351096 ms  DeleteObjects: 0.012829 ms)
+Total: 0.428069 ms (FindLiveObjects: 0.041908 ms CreateObjectMapping: 0.030362 ms MarkObjects: 0.342968 ms  DeleteObjects: 0.011973 ms)
+
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 2.073633 ms
+
+Unloading 35 unused Assets to reduce memory usage. Loaded Objects now: 581.
+Total: 1.433453 ms (FindLiveObjects: 0.092798 ms CreateObjectMapping: 0.100495 ms MarkObjects: 1.019924 ms  DeleteObjects: 0.218952 ms)
+
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 2.875460 ms
+
+Unloading 56 unused Assets to reduce memory usage. Loaded Objects now: 581.
+Total: 1.800370 ms (FindLiveObjects: 0.090659 ms CreateObjectMapping: 0.101778 ms MarkObjects: 1.260686 ms  DeleteObjects: 0.345961 ms)
+
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 1.841423 ms
+
+Unloading 50 unused Assets to reduce memory usage. Loaded Objects now: 581.
+Total: 2.690291 ms (FindLiveObjects: 0.092798 ms CreateObjectMapping: 0.101351 ms MarkObjects: 1.447138 ms  DeleteObjects: 1.048148 ms)
+
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 2.287881 ms
+
+Unloading 36 unused Assets to reduce memory usage. Loaded Objects now: 581.
+Total: 1.974420 ms (FindLiveObjects: 0.094508 ms CreateObjectMapping: 0.099640 ms MarkObjects: 1.549772 ms  DeleteObjects: 0.229643 ms)
 

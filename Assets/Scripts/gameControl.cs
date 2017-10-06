@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class gameControl : MonoBehaviour
@@ -23,27 +24,28 @@ public class gameControl : MonoBehaviour
     public Image sleepyLevelFG;
     public Image angryLevelFG;
 
-    int i = 0;//roleDeck数组的下标
+    int i;//roleDeck数组的下标
     public List<GameObject> roleField = new List<GameObject>();//角色卡置入战场后的区域
-    public static int j = 0;//roleField数组的下标
+    public static int j;//roleField数组的下标
     private List<int> result = new List<int>(12);//存储为赋予不同角色卡材质产生的随机数
     int someNum;//为赋予不同角色卡材质产生的随机数
     public static int positionOfK;//由于K角色卡的特俗效果，因此要对他的位置进行记录
-    public static bool KinBattlefield = false;//判断角色卡K是否在场上
-    private bool LinBattlefield = false;//判断角色卡L是否处于战场中
-    public static bool UseSkillOfL = false;//决定是否使用L的技能
+    public static bool KinBattlefield;//判断角色卡K是否在场上
+    private bool LinBattlefield;//判断角色卡L是否处于战场中
+    public static bool UseSkillOfL;//决定是否使用L的技能
     public Button UseOrNot;//是否使用L角色技能的按钮
     Text text;//记录场景中显示的变化的沉睡度
     Text text1;//记录场景中显示的变化的愤怒值
-    public static bool canUseActionCard = true;//判断能否使用动作卡
-    public static bool canUseRoleCard = true;//判断是否能使用角色卡
-    private bool winOrNot = false;//判断是否胜利
-    private bool loseOrNot = false;//判断是否输了
+    public static bool canUseActionCard;//判断能否使用动作卡
+    public static bool canUseRoleCard;//判断是否能使用角色卡
+    private bool winOrNot;//判断是否胜利
+    public static bool loseOrNot;//判断是否输了
     public int gameNum;//表明这是第几关
 
 
     void Start()
     {
+        i = 0;
         initLevel();
         angryLevelRemaining = startAngryLevel;//将初始沉睡度赋给变化沉睡度
         sleepyLevelRemaining = startSleepyLevel;//将初始愤怒值赋给变化愤怒值
@@ -68,9 +70,17 @@ public class gameControl : MonoBehaviour
                 UseSkillOfL = true;
             }
         });
-        
-       
-        
+        if (gameNum == 5)
+            j = 5;
+        else
+            j = 0;
+        KinBattlefield = false;
+        LinBattlefield = false;
+        UseSkillOfL = false;
+        canUseActionCard = true;
+        canUseRoleCard = true;
+        winOrNot = false;
+        loseOrNot = false;
     }
 
     // Update is called once per frame
@@ -98,15 +108,17 @@ public class gameControl : MonoBehaviour
         if (sleepyLevelRemaining <= 0)
         {
             winOrNot = true;
-
-
+            winOrLose();
         }
 
         //判断玩家是否输了比赛
         if (sleepyLevelRemaining >= 100)
         {
             loseOrNot = true;
-
+            winOrLose();
+        }
+        else if (angryLevelRemaining >= 100) {
+            SceneManager.LoadScene("title");
         }
         //显示沉睡度和愤怒值的百分比条
         sleepyLevelFG.fillAmount = sleepyLevelRemaining / 100;
@@ -125,6 +137,18 @@ public class gameControl : MonoBehaviour
                 startSleepyLevel = 50;
                 startAngryLevel = 50;
                 break;
+            case 3:
+                startSleepyLevel = 50;
+                startAngryLevel = 40;
+                break;
+            case 4:
+                startSleepyLevel = 40;
+                startAngryLevel = 60;
+                break;
+            case 5:
+                startSleepyLevel = 50;
+                startAngryLevel = 50;
+                break;
             default:
                 break;
         }
@@ -132,46 +156,100 @@ public class gameControl : MonoBehaviour
 
     private void BuildDeck()
     {
-        //角色卡一共十二张，故卡组也为十二张
-        for (int i = 0; i < 12; i++)
+        //因为关卡五一开始就会将五张角色卡置入场景中，故卡组少五张
+        if (gameNum == 5) {
+            for (int i = 0; i < 7; i++)
+            {
+                //下标越小的roleDeck[]，y轴的位置越高
+                int j = 6 - i;
+                roleDeck[j] = GameObject.Instantiate(roleCard) as GameObject;
+                //每创建一张卡片，将他的Y轴坐标上移
+                float y = (float)i / 10 - 10;
+                roleDeck[j].transform.position = new Vector3(30, y, -10);
+            }
+        }
+        else
         {
-            //下标越小的roleDeck[]，y轴的位置越高
-            int j = 11 - i;
-            roleDeck[j] = GameObject.Instantiate(roleCard) as GameObject;
-            //每创建一张卡片，将他的Y轴坐标上移
-            float y = (float)i / 10 - 10;
-            roleDeck[j].transform.position = new Vector3(30, y, -10);
+            //角色卡一共十二张，故卡组也为十二张
+            for (int i = 0; i < 12; i++)
+            {
+                //下标越小的roleDeck[]，y轴的位置越高
+                int j = 11 - i;
+                roleDeck[j] = GameObject.Instantiate(roleCard) as GameObject;
+                //每创建一张卡片，将他的Y轴坐标上移
+                float y = (float)i / 10 - 10;
+                roleDeck[j].transform.position = new Vector3(30, y, -10);
+            }
         }
     }
 
     private void EnemyTurn()
     {
-        //每回合结束会记录当前回合的沉睡度及愤怒值为初始的沉睡度及愤怒值
-        gameControl.startSleepyLevel = gameControl.sleepyLevelRemaining;
-        gameControl.startAngryLevel = gameControl.angryLevelRemaining;
-        //将变化沉睡度增加
-        sleepyLevelRemaining += 5;
-        //表示结束敌人回合，再次进入发牌阶段
-        CardGenerating = true;
-        actionCardControl.k = 0;
-        //每次结束回合后，令可使用的动作卡数等于当前战场上的角色卡数
-        actionCardControl.canUseActionCardAmount = j;
-        //当角色卡区域被置满角色卡后，则无法再打出角色卡
-        if (j > 4)
+        //角色卡抽完判负
+        if (i == 12)
         {
-            canUseRoleCard = false;
+            loseOrNot = true;
+            winOrLose();
         }
-        else
-        {
-            canUseRoleCard = true;
+        else {
+            //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
+            if (gameNum == 3 && (System.Math.Abs(sleepyLevelRemaining - startSleepyLevel) > 20 ||
+                System.Math.Abs(angryLevelRemaining - startAngryLevel) > 20))
+            {
+                sleepyLevelRemaining = startSleepyLevel;
+                angryLevelRemaining = startAngryLevel;
+            }
+            else
+            {
+                //每回合结束会记录当前回合的沉睡度及愤怒值为初始的沉睡度及愤怒值
+                startSleepyLevel = sleepyLevelRemaining;
+                startAngryLevel = angryLevelRemaining;
+            }
+            //将变化沉睡度增加
+            //根据不同关卡定义增加量
+            if (gameNum == 2)
+            {
+                sleepyLevelRemaining += 3;
+                angryLevelRemaining += 5;
+            }
+            else if (gameNum == 1)
+            {
+                sleepyLevelRemaining += 10;
+            }
+            else
+            {
+                sleepyLevelRemaining += 5;
+            }
+            //表示结束敌人回合，再次进入发牌阶段
+            CardGenerating = true;
+            actionCardControl.k = 0;
+            //每次结束回合后，令可使用的动作卡数等于当前战场上的角色卡数
+            actionCardControl.canUseActionCardAmount = j;
+            //当角色卡区域被置满角色卡后，则无法再打出角色卡
+            if (j > 4)
+            {
+                canUseRoleCard = false;
+            }
+            else
+            {
+                canUseRoleCard = true;
+            }
+            canUseActionCard = true;
         }
-        canUseActionCard = true;
     }
 
-    public void AddRoleCard()
+    void AddRoleCard()
     {
         //角色卡数不能大于8，否则就不会发牌
         if (cards.Count < 8) {
+            //关卡五一开始就会将五张角色卡置入场地中，因此将相应的数字赋入result数组中
+            if (gameNum == 5) {
+                result.Add(4);
+                result.Add(8);
+                result.Add(3);
+                result.Add(1);
+                result.Add(10);
+            }
             //创建不重复的随机数
             do
             {
@@ -296,7 +374,54 @@ public class gameControl : MonoBehaviour
         }
     }
 
-    private void OnGUI()
+    //胜利或者失败后的操作
+    void winOrLose() {
+        if (winOrNot) {
+            switch (gameNum) {
+                case 1:
+                    SceneManager.LoadScene("game2");
+                    break;
+                case 2:
+                    SceneManager.LoadScene("game3");
+                    break;
+                case 3:
+                    SceneManager.LoadScene("game4");
+                    break;
+                case 4:
+                    SceneManager.LoadScene("game4", LoadSceneMode.Single);
+                    break;
+                case 5:
+                    SceneManager.LoadScene("game5", LoadSceneMode.Single);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (loseOrNot)
+        {
+            switch (gameNum)
+            {
+                case 1:
+                    SceneManager.LoadScene("game1", LoadSceneMode.Single);
+                    break;
+                case 2:
+                    SceneManager.LoadScene("game2", LoadSceneMode.Single);
+                    break;
+                case 3:
+                    SceneManager.LoadScene("game3", LoadSceneMode.Single);
+                    break;
+                case 4:
+                    SceneManager.LoadScene("game4", LoadSceneMode.Single);
+                    break;
+                case 5:
+                    SceneManager.LoadScene("game5", LoadSceneMode.Single);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    /*private void OnGUI()
     {
         //赢时输出的信息以及创建再玩一次的按钮
         if (winOrNot)
@@ -322,9 +447,9 @@ public class gameControl : MonoBehaviour
                 Application.LoadLevel("title");
             }
         }
-    }
+    }*/
 
-    void initData()
+    /*void initData()
     {
         startSleepyLevel = 35;
         startAngryLevel = 50;
@@ -336,6 +461,6 @@ public class gameControl : MonoBehaviour
         canUseRoleCard = true;
         winOrNot = false;
         loseOrNot = false;
-    }
+    }*/
 
 }
