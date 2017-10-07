@@ -143,6 +143,12 @@ public class roleFieldResponse : MonoBehaviour {
             case 5:
                 game5();
                 break;
+            case 6:
+                game6();
+                break;
+            case 7:
+                game7();
+                break;
             default:
                 break;
         }
@@ -215,6 +221,28 @@ public class roleFieldResponse : MonoBehaviour {
         else if (this.tag == "A")
             Relation = 1;
         else if (this.tag == "E" || this.tag == "K" || this.tag == "D")
+            Relation = 2;
+        else
+            Relation = 3;
+    }
+
+    void game6() {
+        if (this.tag == "F" || this.tag == "G")
+            Relation = 4;
+        else if (this.tag == "I")
+            Relation = 1;
+        else if (this.tag == "J")
+            Relation = 2;
+        else
+            Relation = 3;
+    }
+
+    void game7() {
+        if (this.tag == "E")
+            Relation = 4;
+        else if (this.tag == "D")
+            Relation = 1;
+        else if (this.tag == "J" || this.tag == "K")
             Relation = 2;
         else
             Relation = 3;

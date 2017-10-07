@@ -13,7 +13,7 @@ public class gameControl : MonoBehaviour
     public GameObject roleCard;//用来实例化的卡片预制件
     public List<GameObject> roleDeck = new List<GameObject>();//存储初始化卡组的List集合
     public List<Material> roleMaterials = new List<Material>();//存储所需的角色卡材质的List集合
-    public bool CardGenerating = true;//系统随机发放卡牌的阶段
+    public static bool CardGenerating = true;//系统随机发放卡牌的阶段
     public bool PlayCard;//出牌对战阶段
     public Button buttonPrefab;//标志回合结束，并标明下回合开始将一张角色卡加入手牌的结束回合按钮
 
@@ -51,11 +51,19 @@ public class gameControl : MonoBehaviour
         sleepyLevelRemaining = startSleepyLevel;//将初始愤怒值赋给变化愤怒值
         xOffset = card02.position.x - card01.position.x;
         BuildDeck();//创建初始卡组
-        //游戏开始时从卡组中将四张角色卡置入手牌
-        for (int i = 0; i < 4; i++)
+        //如果当前不处于第七关，则游戏开始时从卡组中将四张角色卡置入手牌
+        if (gameNum != 7)
         {
+            for (int i = 0; i < 4; i++)
+            {
+                AddRoleCard();
+            }
+        }//第七关开局只有两张角色卡
+        else {
+            AddRoleCard();
             AddRoleCard();
         }
+        
         //如果点击了场景中的结束（角色卡)按钮，则表示结束回合，执行敌方回合的方法
         buttonPrefab.onClick.AddListener(delegate ()
         {
@@ -92,9 +100,30 @@ public class gameControl : MonoBehaviour
         //在场景中显示变化的愤怒值
         text1 = GameObject.Find("Canvas/angryLevel").GetComponent<Text>();
         text1.text = angryLevelRemaining.ToString() + "%";
-        //如果正处于角色卡的发牌阶段，则执行发牌方法
+        //如果正处于角色卡的发牌阶段，则判断是否处在第七关
         if (CardGenerating)
-            AddRoleCard();
+        {
+            //如果当前关卡是第七关，则产生一个随机数
+            if (gameNum == 7)
+            {
+                someNum = Random.Range(0, 2);
+                //如果随机数为1，表示正常发牌，发一张角色卡入手
+                if (someNum == 1)
+                {
+                    AddRoleCard();
+                }//否则修改ActionCardGenerating为真，即调用发动作卡方法
+                else
+                {
+                    actionCardControl.ActionCardGenerating = true;
+                }
+            }//不在第七关依旧正常发牌
+            else
+            {
+                AddRoleCard();
+            }//角色卡发牌阶段结束
+            CardGenerating = false;
+        }
+       
         //首先判断是否点击了鼠标左键
         if (Input.GetMouseButtonDown(0))
         {
@@ -149,6 +178,14 @@ public class gameControl : MonoBehaviour
                 startSleepyLevel = 50;
                 startAngryLevel = 50;
                 break;
+            case 6:
+                startSleepyLevel = 50;
+                startAngryLevel = 50;
+                break;
+            case 7:
+                startSleepyLevel = 20;
+                startAngryLevel = 40;
+                break;
             default:
                 break;
         }
@@ -191,7 +228,12 @@ public class gameControl : MonoBehaviour
             loseOrNot = true;
             winOrLose();
         }
-        else {
+        else if (gameNum == 5 && i == 7) {
+            loseOrNot = true;
+            winOrLose();
+        }
+        else
+        {
             //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
             if (gameNum == 3 && (System.Math.Abs(sleepyLevelRemaining - startSleepyLevel) > 20 ||
                 System.Math.Abs(angryLevelRemaining - startAngryLevel) > 20))
@@ -216,6 +258,8 @@ public class gameControl : MonoBehaviour
             {
                 sleepyLevelRemaining += 10;
             }
+            else if (gameNum == 7)
+                sleepyLevelRemaining += 2;
             else
             {
                 sleepyLevelRemaining += 5;
@@ -388,10 +432,13 @@ public class gameControl : MonoBehaviour
                     SceneManager.LoadScene("game4");
                     break;
                 case 4:
-                    SceneManager.LoadScene("game4", LoadSceneMode.Single);
+                    SceneManager.LoadScene("game5");
                     break;
                 case 5:
-                    SceneManager.LoadScene("game5", LoadSceneMode.Single);
+                    SceneManager.LoadScene("game6");
+                    break;
+                case 6:
+                    SceneManager.LoadScene("game7");
                     break;
                 default:
                     break;
@@ -415,6 +462,12 @@ public class gameControl : MonoBehaviour
                     break;
                 case 5:
                     SceneManager.LoadScene("game5", LoadSceneMode.Single);
+                    break;
+                case 6:
+                    SceneManager.LoadScene("game6", LoadSceneMode.Single);
+                    break;
+                case 7:
+                    SceneManager.LoadScene("game7", LoadSceneMode.Single);
                     break;
                 default:
                     break;

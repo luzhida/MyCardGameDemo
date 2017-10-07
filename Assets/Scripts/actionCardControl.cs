@@ -18,7 +18,7 @@ public class actionCardControl : MonoBehaviour {
     int someNum;//为赋予不同动作卡材质产生的随机数
     private List<int> result = new List<int>(48);//存储为赋予不同动作卡材质产生的随机数
     public Button buttonPrefab;//标志回合结束，并标明下回合开始将两张动作卡卡加入手牌的结束回合按钮
-    private bool ActionCardGenerating;//表明现在是否为动作卡发牌阶段的布尔值
+    public static bool ActionCardGenerating;//表明现在是否为动作卡发牌阶段的布尔值
     public static int canUseActionCardAmount;//能使用的动作卡数量
 
     public Material initialMaterial;//战场的初始材质
@@ -45,11 +45,18 @@ public class actionCardControl : MonoBehaviour {
         xOffset = card01.position.x - card03.position.x;
         //创建初始动作卡卡组
         BuildDeck();
-        //游戏开始时从卡组中将两张角色卡置入手牌
-        for (int i = 0; i < 2; i++)
+        //如果当前不处于第七关，则游戏开始时从卡组中将两张动作卡置入手牌
+        if (gameNum != 7) {
+            for (int i = 0; i < 2; i++)
+            {
+                AddActionCard();
+            }
+        }//第七关开局只有一张动作卡
+        else
         {
             AddActionCard();
         }
+        
         //如果点击了场景中的结束（动作卡)按钮，则表示结束回合，执行敌方回合的方法
         buttonPrefab.onClick.AddListener(delegate () {
             EnemyTurn();
@@ -60,11 +67,29 @@ public class actionCardControl : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        //动作卡发牌阶段每次将两张动作卡加入手牌，那之后动作卡发牌阶段结束
+        
+        //如果当前为发牌阶段，则检验是否为第七关
         if (ActionCardGenerating)
         {
-            AddActionCard();
-            AddActionCard();
+            //如果当前关卡是第七关，则产生一个随机数
+            if (gameNum == 7)
+            {
+                someNum = Random.Range(0, 2);
+                //如果随机数为1，表示正常发牌，发一张动作卡入手
+                if (someNum == 1)
+                {
+                    AddActionCard();
+                }//否则修改CardGenerating为真，即调用发角色卡方法
+                else
+                {
+                    gameControl.CardGenerating = true;
+                }
+            }//非第七关的场合，动作卡发牌阶段每次将两张动作卡加入手牌
+            else {
+                AddActionCard();
+                AddActionCard();
+            }
+            //动作卡发牌阶段结束
             ActionCardGenerating = false;
         }
 
@@ -99,34 +124,43 @@ public class actionCardControl : MonoBehaviour {
 
     public void AddActionCard()
     {
+        Vector3 toPosition = card03.position - new Vector3(xOffset, 0, 0) * cards.Count;
         //动作卡不能大于6，否则就不会发牌
         if (cards.Count < 6)
         {
-            do
+            //如果是第六关，就全发撒娇动作卡
+            if (gameNum == 6)
             {
-                someNum = Random.Range(0, actionMaterials.Count);
-            } while (result.Contains(someNum));
-            result.Add(someNum);
-            Vector3 toPosition = card03.position - new Vector3(xOffset, 0, 0) * cards.Count;
-            iTween.MoveTo(actionDeck[i], toPosition, 1f);
-            actionDeck[i].GetComponent<Renderer>().material = actionMaterials[someNum];
-            int fuck = (someNum + 1) % 4;
-            switch (fuck)
-            {
-                case 0:
-                    actionDeck[i].tag = "pull";
-                    break;
-                case 1:
-                    actionDeck[i].tag = "abandon";
-                    break;
-                case 2:
-                    actionDeck[i].tag = "coquetry";
-                    break;
-                case 3:
-                    actionDeck[i].tag = "noisy";
-                    break;
-                default:
-                    break;
+                iTween.MoveTo(actionDeck[i], toPosition, 1f);
+                actionDeck[i].GetComponent<Renderer>().material = actionMaterials[1];
+                actionDeck[i].tag = "coquetry";
+            }
+            else {
+                do
+                {
+                    someNum = Random.Range(0, actionMaterials.Count);
+                } while (result.Contains(someNum));
+                result.Add(someNum);
+                iTween.MoveTo(actionDeck[i], toPosition, 1f);
+                actionDeck[i].GetComponent<Renderer>().material = actionMaterials[someNum];
+                int fuck = (someNum + 1) % 4;
+                switch (fuck)
+                {
+                    case 0:
+                        actionDeck[i].tag = "pull";
+                        break;
+                    case 1:
+                        actionDeck[i].tag = "abandon";
+                        break;
+                    case 2:
+                        actionDeck[i].tag = "coquetry";
+                        break;
+                    case 3:
+                        actionDeck[i].tag = "noisy";
+                        break;
+                    default:
+                        break;
+                }
             }
             actionDeck[i].transform.rotation = Quaternion.Euler(90, 0, 0);
             cards.Add(actionDeck[i]);
@@ -152,6 +186,9 @@ public class actionCardControl : MonoBehaviour {
                 break;
             case 5:
                 SceneManager.LoadScene("game5", LoadSceneMode.Single);
+                break;
+            case 6:
+                SceneManager.LoadScene("game6", LoadSceneMode.Single);
                 break;
             default:
                 break;
@@ -262,6 +299,8 @@ public class actionCardControl : MonoBehaviour {
             {
                 gameControl.sleepyLevelRemaining += 10;
             }
+            else if (gameNum == 7)
+                gameControl.sleepyLevelRemaining += 3;
             else
             {
                 gameControl.sleepyLevelRemaining += 5;
