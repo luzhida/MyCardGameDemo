@@ -41,10 +41,12 @@ public class gameControl : MonoBehaviour
     private bool winOrNot;//判断是否胜利
     public static bool loseOrNot;//判断是否输了
     public int gameNum;//表明这是第几关
-
+    private int recordRoleNum;//为第九关记录角色卡的使用数量
+    public static bool classmate, rialInLove, hatedMan, friend;//第十关为了判断对应关系而创建的布尔值
 
     void Start()
     {
+        recordRoleNum = 0;
         i = 0;
         initLevel();
         angryLevelRemaining = startAngryLevel;//将初始沉睡度赋给变化沉睡度
@@ -136,10 +138,57 @@ public class gameControl : MonoBehaviour
         //判断玩家是否赢得了游戏
         if (sleepyLevelRemaining <= 0)
         {
+            //如果当前是第九关，则需要打出十二张动作卡后使沉睡度归零才能获胜,否则判为失败
+            if (gameNum == 9) {
+                if (recordRoleNum == 12) {
+                    winOrNot = true;
+                    winOrLose();
+                }
+                else
+                {
+                    loseOrNot = true;
+                    winOrLose();
+                }
+            }
             winOrNot = true;
             winOrLose();
         }
-
+        //如果当前为第十关，并且角色卡已经打出了四张以上的场合
+        if (gameNum == 10 && j >= 4)
+        {
+            //判断每个角色卡的对应关系
+            for (int k = 0; k < gameControl.j; k++)
+            {
+                roleFieldResponse theScript = roleField[k].GetComponent<roleFieldResponse>();
+                switch (theScript.Relation)
+                {
+                    case 1:
+                        hatedMan = true;
+                        break;
+                    case 2:
+                        rialInLove = true;
+                        break;
+                    case 3:
+                        classmate = true;
+                        break;
+                    case 4:
+                        friend = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            Debug.Log(hatedMan);
+            Debug.Log(rialInLove);
+            Debug.Log(classmate);
+            Debug.Log(friend);
+            //当四种对应关系都存在于场上时，游戏胜利
+            if (hatedMan && rialInLove && classmate && friend)
+            {
+                winOrNot = true;
+                winOrLose();
+            }
+        }
         //判断玩家是否输了比赛
         if (sleepyLevelRemaining >= 100)
         {
@@ -185,6 +234,18 @@ public class gameControl : MonoBehaviour
             case 7:
                 startSleepyLevel = 20;
                 startAngryLevel = 40;
+                break;
+            case 8:
+                startSleepyLevel = 80;
+                startAngryLevel = 50;
+                break;
+            case 9:
+                startSleepyLevel = 50;
+                startAngryLevel = 50;
+                break;
+            case 10:
+                startSleepyLevel = 50;
+                startAngryLevel = 50;
                 break;
             default:
                 break;
@@ -234,6 +295,27 @@ public class gameControl : MonoBehaviour
         }
         else
         {
+            //根据不同关卡将沉睡度及愤怒值变化
+            switch (gameNum)
+            {
+                case 2:
+                    sleepyLevelRemaining += 3;
+                    angryLevelRemaining += 5;
+                    break;
+                case 1:
+                    sleepyLevelRemaining += 10;
+                    break;
+                /*case 3:
+                    break;*/
+                case 7:
+                    sleepyLevelRemaining += 2;
+                    break;
+                case 8:
+                    break;
+                default:
+                    sleepyLevelRemaining += 5;
+                    break;
+            }
             //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
             if (gameNum == 3 && (System.Math.Abs(sleepyLevelRemaining - startSleepyLevel) > 20 ||
                 System.Math.Abs(angryLevelRemaining - startAngryLevel) > 20))
@@ -241,28 +323,24 @@ public class gameControl : MonoBehaviour
                 sleepyLevelRemaining = startSleepyLevel;
                 angryLevelRemaining = startAngryLevel;
             }
-            else
+            else if (gameNum == 8)
             {
+                if (!actionCardControl.abandon8 || !actionCardControl.coquetry8
+               || !actionCardControl.noisy8 || !actionCardControl.pull8) {
+                    sleepyLevelRemaining = startSleepyLevel;
+                    angryLevelRemaining = startAngryLevel;
+                }
+                actionCardControl.abandon8 = actionCardControl.coquetry8
+                            = actionCardControl.noisy8 = actionCardControl.pull8 = false;
+            }
+            else {
                 //每回合结束会记录当前回合的沉睡度及愤怒值为初始的沉睡度及愤怒值
                 startSleepyLevel = sleepyLevelRemaining;
                 startAngryLevel = angryLevelRemaining;
-            }
-            //将变化沉睡度增加
-            //根据不同关卡定义增加量
-            if (gameNum == 2)
+            }//如果当前关卡是第十关，则每回合结束时将判断对应关系的布尔值归零
+            if (gameNum == 10)
             {
-                sleepyLevelRemaining += 3;
-                angryLevelRemaining += 5;
-            }
-            else if (gameNum == 1)
-            {
-                sleepyLevelRemaining += 10;
-            }
-            else if (gameNum == 7)
-                sleepyLevelRemaining += 2;
-            else
-            {
-                sleepyLevelRemaining += 5;
+                hatedMan = rialInLove = classmate = friend = false;
             }
             //表示结束敌人回合，再次进入发牌阶段
             CardGenerating = true;
@@ -386,6 +464,9 @@ public class gameControl : MonoBehaviour
                 //当角色卡能使用时才会执行下面的代码
                 if (canUseRoleCard)
                 {
+                    //如果当前是第九关，则记录角色卡的使用数
+                    if (gameNum == 9)
+                        recordRoleNum++;
                     //如果K角色卡被打出
                     if (hit.collider.gameObject.tag == "K")
                     {
@@ -440,6 +521,18 @@ public class gameControl : MonoBehaviour
                 case 6:
                     SceneManager.LoadScene("game7");
                     break;
+                case 7:
+                    SceneManager.LoadScene("game8");
+                    break;
+                case 8:
+                    SceneManager.LoadScene("game9");
+                    break;
+                case 9:
+                    SceneManager.LoadScene("game10");
+                    break;
+                case 10:
+                    SceneManager.LoadScene("game11");
+                    break;
                 default:
                     break;
             }
@@ -468,6 +561,15 @@ public class gameControl : MonoBehaviour
                     break;
                 case 7:
                     SceneManager.LoadScene("game7", LoadSceneMode.Single);
+                    break;
+                case 8:
+                    SceneManager.LoadScene("game8", LoadSceneMode.Single);
+                    break;
+                case 9:
+                    SceneManager.LoadScene("game9", LoadSceneMode.Single);
+                    break;
+                case 10:
+                    SceneManager.LoadScene("game10", LoadSceneMode.Single);
                     break;
                 default:
                     break;

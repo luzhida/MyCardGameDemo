@@ -36,9 +36,16 @@ public class actionCardControl : MonoBehaviour {
     public int gameNum;//表明这是第几关
     private int startSleepyLevel;//第二关开始时的沉睡度
     private int startAngryLevel;//第二关开始的愤怒值
+    public static bool abandon8, coquetry8, noisy8, pull8;//为第八关判断是否打出四种动作卡而创建的布尔值
 
     // Use this for initialization
     void Start () {
+        /*if (gameNum == 8) {
+            abandon8 = false;
+            coquetry8 = false;
+            noisy8 = false;
+            pull8 = false;
+        }*/
         i = 0;
         k = 0;
         canUseActionCardAmount = gameControl.j;
@@ -190,6 +197,18 @@ public class actionCardControl : MonoBehaviour {
             case 6:
                 SceneManager.LoadScene("game6", LoadSceneMode.Single);
                 break;
+            case 7:
+                SceneManager.LoadScene("game7", LoadSceneMode.Single);
+                break;
+            case 8:
+                SceneManager.LoadScene("game8", LoadSceneMode.Single);
+                break;
+            case 9:
+                SceneManager.LoadScene("game9", LoadSceneMode.Single);
+                break;
+            case 10:
+                SceneManager.LoadScene("game10", LoadSceneMode.Single);
+                break;
             default:
                 break;
         }
@@ -258,6 +277,30 @@ public class actionCardControl : MonoBehaviour {
                     }
                     canUseActionCardAmount--;
                     actionCardResponse();
+                    //如果当前关卡是第八关，则检验每次打出的动作卡的标签
+                    if (gameNum == 8)
+                    {
+                        switch (actionField[k].tag) {
+                            case "abandon":
+                                abandon8 = true;
+                                break;
+                            case "coquetry":
+                                coquetry8 = true;
+                                break;
+                            case "noisy":
+                                //第一关沉睡者的特殊属性为免疫吵闹
+                                if (gameNum != 4)
+                                {
+                                    noisy8 = true;
+                                }
+                                break;
+                            case "pull":
+                                pull8 = true;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                     k++;
                 }
                 
@@ -275,35 +318,49 @@ public class actionCardControl : MonoBehaviour {
         }
         else
         {
+            //根据不同关卡将沉睡度及愤怒值变化
+            switch (gameNum)
+            {
+                case 2:
+                    gameControl.sleepyLevelRemaining += 3;
+                    gameControl.angryLevelRemaining += 5;
+                    break;
+                case 1:
+                    gameControl.sleepyLevelRemaining += 10;
+                    break;
+                /*case 3:
+                    break;*/
+                case 7:
+                    gameControl.sleepyLevelRemaining += 2;
+                    break;
+                case 8:
+                    break;
+                default:
+                    gameControl.sleepyLevelRemaining += 5;
+                    break;
+            }
             //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
             if (gameNum == 3 && (System.Math.Abs(gameControl.sleepyLevelRemaining - gameControl.startSleepyLevel) > 20 ||
                 System.Math.Abs(gameControl.angryLevelRemaining - gameControl.startAngryLevel) > 20))
             {
                 gameControl.sleepyLevelRemaining = gameControl.startSleepyLevel;
                 gameControl.angryLevelRemaining = gameControl.startAngryLevel;
+            } else if (gameNum == 8){
+                if (!abandon8 || !coquetry8 || !noisy8 || !pull8) {
+                    gameControl.sleepyLevelRemaining = gameControl.startSleepyLevel;
+                    gameControl.angryLevelRemaining = gameControl.startAngryLevel;
+                }
+                abandon8 = coquetry8 = noisy8 = pull8 = false;
             }
-            else
-            {
+            else {
                 //每回合结束会记录当前回合的沉睡度及愤怒值为初始的沉睡度及愤怒值
                 gameControl.startSleepyLevel = gameControl.sleepyLevelRemaining;
                 gameControl.startAngryLevel = gameControl.angryLevelRemaining;
             }
-            //将变化沉睡度增加
-            //根据不同关卡定义增加量
-            if (gameNum == 2)
+            //如果当前关卡是第十关，则每回合结束时将判断对应关系的布尔值归零
+            if (gameNum == 10)
             {
-                gameControl.sleepyLevelRemaining += 3;
-                gameControl.angryLevelRemaining += 5;
-            }
-            else if (gameNum == 1)
-            {
-                gameControl.sleepyLevelRemaining += 10;
-            }
-            else if (gameNum == 7)
-                gameControl.sleepyLevelRemaining += 3;
-            else
-            {
-                gameControl.sleepyLevelRemaining += 5;
+                gameControl.hatedMan = gameControl.rialInLove = gameControl.classmate = gameControl.friend = false;
             }
             //表示结束敌人回合，再次进入动作卡发牌阶段
             ActionCardGenerating = true;

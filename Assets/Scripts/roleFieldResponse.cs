@@ -149,6 +149,16 @@ public class roleFieldResponse : MonoBehaviour {
             case 7:
                 game7();
                 break;
+            case 8:
+                game8();
+                break;
+            case 9:
+                game9();
+                break;
+            case 10:
+                //第十关全是同学关系
+                Relation = 3;
+                break;
             default:
                 break;
         }
@@ -247,4 +257,24 @@ public class roleFieldResponse : MonoBehaviour {
         else
             Relation = 3;
     }
+
+    void game8() {
+        if (this.tag == "A")
+            Relation = 4;
+        else if (this.tag == "G" || this.tag == "F")
+            Relation = 2;
+        else if (this.tag == "C" || this.tag == "D")
+            Relation = 1;
+        else
+            Relation = 3;
+    }
+
+    void game9() {
+        if (this.tag == "F" || this.tag == "K" || this.tag == "I" ||
+            this.tag == "L" || this.tag == "H")
+            Relation = 3;
+        else
+            Relation = 2;
+    }
+    
 }
