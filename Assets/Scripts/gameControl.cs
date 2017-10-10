@@ -40,9 +40,14 @@ public class gameControl : MonoBehaviour
     public static bool canUseRoleCard;//判断是否能使用角色卡
     private bool winOrNot;//判断是否胜利
     public static bool loseOrNot;//判断是否输了
+
     public int gameNum;//表明这是第几关
     private int recordRoleNum;//为第九关记录角色卡的使用数量
     public static bool classmate, rialInLove, hatedMan, friend;//第十关为了判断对应关系而创建的布尔值
+    private int turnNum;//表明当前是角色卡的第几回合
+    public GameObject hiddenSkill;//隐藏技能的提示面板
+    public Text SkillText;//隐藏技能的提示文本
+    public static bool hiddenSkillsOn;//判断隐藏技能是否打开的布尔值
 
     void Start()
     {
@@ -91,6 +96,8 @@ public class gameControl : MonoBehaviour
         canUseRoleCard = true;
         winOrNot = false;
         loseOrNot = false;
+        if (gameNum == 11)
+            hiddenSkill.SetActive(true);
     }
 
     // Update is called once per frame
@@ -125,7 +132,13 @@ public class gameControl : MonoBehaviour
             }//角色卡发牌阶段结束
             CardGenerating = false;
         }
-       
+
+        //如果当前是第十一关且角色L在场上，则随时检查沉睡度及愤怒值是否达到99%
+        if (gameNum == 11 && LinBattlefield) {
+            if (sleepyLevelRemaining ==99 && angryLevelRemaining == 99) {
+                hiddenSkillsOn = true;
+            }
+        }
         //首先判断是否点击了鼠标左键
         if (Input.GetMouseButtonDown(0))
         {
@@ -247,6 +260,10 @@ public class gameControl : MonoBehaviour
                 startSleepyLevel = 50;
                 startAngryLevel = 50;
                 break;
+            case 11:
+                startSleepyLevel = 50;
+                startAngryLevel = 50;
+                break;
             default:
                 break;
         }
@@ -296,25 +313,36 @@ public class gameControl : MonoBehaviour
         else
         {
             //根据不同关卡将沉睡度及愤怒值变化
-            switch (gameNum)
+            //当前关卡为十一关，隐藏技能被打开时，沉睡度及愤怒值改为每回合结束后减10
+            if (gameNum == 11 && hiddenSkillsOn)
             {
-                case 2:
-                    sleepyLevelRemaining += 3;
-                    angryLevelRemaining += 5;
-                    break;
-                case 1:
-                    sleepyLevelRemaining += 10;
-                    break;
-                /*case 3:
-                    break;*/
-                case 7:
-                    sleepyLevelRemaining += 2;
-                    break;
-                case 8:
-                    break;
-                default:
-                    sleepyLevelRemaining += 5;
-                    break;
+                sleepyLevelRemaining -= 10;
+                angryLevelRemaining -= 10;
+            }
+            else {
+                switch (gameNum)
+                {
+                    case 2:
+                        sleepyLevelRemaining += 3;
+                        angryLevelRemaining += 5;
+                        break;
+                    case 1:
+                        sleepyLevelRemaining += 10;
+                        break;
+                    /*case 3:
+                        break;*/
+                    case 7:
+                        sleepyLevelRemaining += 2;
+                        break;
+                    case 8:
+                        break;
+                    case 11:
+                        sleepyLevelRemaining += 2;
+                        break;
+                    default:
+                        sleepyLevelRemaining += 5;
+                        break;
+                }
             }
             //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
             if (gameNum == 3 && (System.Math.Abs(sleepyLevelRemaining - startSleepyLevel) > 20 ||
@@ -357,6 +385,9 @@ public class gameControl : MonoBehaviour
                 canUseRoleCard = true;
             }
             canUseActionCard = true;
+            //如果当前是十一关，则激活隐藏技能提示面板，每回合输出提示语句，共四句
+            if (gameNum == 11) 
+                hiddenSkills();
         }
     }
 
@@ -533,6 +564,9 @@ public class gameControl : MonoBehaviour
                 case 10:
                     SceneManager.LoadScene("game11");
                     break;
+                case 11:
+                    SceneManager.LoadScene("game12");
+                    break;
                 default:
                     break;
             }
@@ -571,11 +605,41 @@ public class gameControl : MonoBehaviour
                 case 10:
                     SceneManager.LoadScene("game10", LoadSceneMode.Single);
                     break;
+                case 11:
+                    SceneManager.LoadScene("game11", LoadSceneMode.Single);
+                    break;
                 default:
                     break;
             }
         }
     }
+
+    //每次选择角色卡结束回合时，输出隐藏技能的提示句子
+    void hiddenSkills()
+    {
+        turnNum++;
+        //隐藏技能的提示每关只有四句
+        if (turnNum < 5)
+        {
+            switch (turnNum) {
+                case 1:
+                    SkillText.text = "\n你觉得第三关难吗？如果觉得难，那可能这关也不简单哦。";
+                    break;
+                case 2:
+                    SkillText.text = SkillText.text + "\n喂，别再L面前提99哦，他前阵子刚考了99。";
+                    break;
+                case 3:
+                    SkillText.text = SkillText.text + "\n你听说过置之死地而后生吗？";
+                    break;
+                case 4:
+                    SkillText.text = SkillText.text + "\n有时候真的想舒舒服服的，不用思考就能赢得一局。";
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
     /*private void OnGUI()
     {
         //赢时输出的信息以及创建再玩一次的按钮
@@ -617,5 +681,3 @@ public class gameControl : MonoBehaviour
         winOrNot = false;
         loseOrNot = false;
     }*/
-
-}

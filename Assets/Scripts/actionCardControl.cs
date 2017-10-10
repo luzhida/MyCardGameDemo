@@ -209,6 +209,9 @@ public class actionCardControl : MonoBehaviour {
             case 10:
                 SceneManager.LoadScene("game10", LoadSceneMode.Single);
                 break;
+            case 11:
+                SceneManager.LoadScene("game11", LoadSceneMode.Single);
+                break;
             default:
                 break;
         }
@@ -319,25 +322,37 @@ public class actionCardControl : MonoBehaviour {
         else
         {
             //根据不同关卡将沉睡度及愤怒值变化
-            switch (gameNum)
+            //当前关卡为十一关，隐藏技能被打开时，沉睡度及愤怒值改为每回合结束后减10
+            if (gameNum == 11 && gameControl.hiddenSkillsOn)
             {
-                case 2:
-                    gameControl.sleepyLevelRemaining += 3;
-                    gameControl.angryLevelRemaining += 5;
-                    break;
-                case 1:
-                    gameControl.sleepyLevelRemaining += 10;
-                    break;
-                /*case 3:
-                    break;*/
-                case 7:
-                    gameControl.sleepyLevelRemaining += 2;
-                    break;
-                case 8:
-                    break;
-                default:
-                    gameControl.sleepyLevelRemaining += 5;
-                    break;
+                gameControl.sleepyLevelRemaining -= 10;
+                gameControl.angryLevelRemaining -= 10;
+            }
+            else
+            {
+                switch (gameNum)
+                {
+                    case 2:
+                        gameControl.sleepyLevelRemaining += 3;
+                        gameControl.angryLevelRemaining += 5;
+                        break;
+                    case 1:
+                        gameControl.sleepyLevelRemaining += 10;
+                        break;
+                    /*case 3:
+                        break;*/
+                    case 7:
+                        gameControl.sleepyLevelRemaining += 2;
+                        break;
+                    case 8:
+                        break;
+                    case 11:
+                        gameControl.sleepyLevelRemaining += 2;
+                        break;
+                    default:
+                        gameControl.sleepyLevelRemaining += 5;
+                        break;
+                }
             }
             //虽然第二关Boss属性为过度响应，然而每回合却必须把沉睡度及愤怒值的增减量控制在20%以内，否则下回合将重置愤怒值和沉睡度
             if (gameNum == 3 && (System.Math.Abs(gameControl.sleepyLevelRemaining - gameControl.startSleepyLevel) > 20 ||
