@@ -21,8 +21,8 @@ public class gameControl : MonoBehaviour
     public static float startAngryLevel;//开始的愤怒值
     public static float sleepyLevelRemaining;//游戏过程中变化的沉睡度
     public static float angryLevelRemaining;//游戏过程中变化的愤怒值
-    public Image sleepyLevelFG;
-    public Image angryLevelFG;
+    public Image sleepyLevelFG;//沉睡度百分比条
+    public Image angryLevelFG;//愤怒值百分比条
 
     int i;//roleDeck数组的下标
     public List<GameObject> roleField = new List<GameObject>();//角色卡置入战场后的区域
@@ -48,6 +48,12 @@ public class gameControl : MonoBehaviour
     public GameObject hiddenSkill;//隐藏技能的提示面板
     public Text SkillText;//隐藏技能的提示文本
     public static bool hiddenSkillsOn;//判断隐藏技能是否打开的布尔值
+    public static List<string> Boss = new List<string>(12);//记录每关击倒Boss的角色卡标签
+    public GameObject BossButton;//存储Boss选择按钮的游戏物体
+    public static bool G1, G2, G3, G4, G5, G6, G7, G8, G9, G10, G11;//判断某角色卡是否能激活某Boss卡的布尔值
+    public static int count;//Boss卡的计数器
+    public Button ButtonTest;//暂时为了跳关而存在的按钮
+    bool BossIsActive;//判断Boss按钮是否激活的布尔值
 
     void Start()
     {
@@ -85,6 +91,12 @@ public class gameControl : MonoBehaviour
                 UseSkillOfL = true;
             }
         });
+        ButtonTest.onClick.AddListener(delegate ()
+         {
+             //被点击就跳关
+             winOrNot = true;
+             winOrLose();
+         });
         if (gameNum == 5)
             j = 5;
         else
@@ -139,6 +151,16 @@ public class gameControl : MonoBehaviour
                 hiddenSkillsOn = true;
             }
         }
+
+        //Boss卡选择按钮被激活时，才能执行
+        if (BossIsActive) {
+            //可置入战场的Boss已无或角色卡区域已满，则关闭按钮
+            if (j >= 5 || count <= 0){
+                BossButton.SetActive(false);
+                BossIsActive = false;
+            }
+        }
+
         //首先判断是否点击了鼠标左键
         if (Input.GetMouseButtonDown(0))
         {
@@ -156,6 +178,7 @@ public class gameControl : MonoBehaviour
                 if (recordRoleNum == 12) {
                     winOrNot = true;
                     winOrLose();
+                    Boss.Add(roleField[actionCardControl.k - 1].tag);
                 }
                 else
                 {
@@ -163,6 +186,7 @@ public class gameControl : MonoBehaviour
                     winOrLose();
                 }
             }
+            Boss.Add(roleField[actionCardControl.k - 1].tag);
             winOrNot = true;
             winOrLose();
         }
@@ -191,13 +215,10 @@ public class gameControl : MonoBehaviour
                         break;
                 }
             }
-            Debug.Log(hatedMan);
-            Debug.Log(rialInLove);
-            Debug.Log(classmate);
-            Debug.Log(friend);
             //当四种对应关系都存在于场上时，游戏胜利
             if (hatedMan && rialInLove && classmate && friend)
             {
+                Boss.Add(roleField[actionCardControl.k].tag);
                 winOrNot = true;
                 winOrLose();
             }
@@ -261,6 +282,10 @@ public class gameControl : MonoBehaviour
                 startAngryLevel = 50;
                 break;
             case 11:
+                startSleepyLevel = 50;
+                startAngryLevel = 50;
+                break;
+            case 12:
                 startSleepyLevel = 50;
                 startAngryLevel = 50;
                 break;
@@ -525,8 +550,77 @@ public class gameControl : MonoBehaviour
                 }
                 //角色卡一回合只能使用一张
                 canUseRoleCard = false;
+                //如果当前是第十二关，则执行将BOSS卡置入战场的方法
+                if (gameNum == 12)
+                {
+                    count = 0;
+                    BossEnter();
+                    //如果该角色卡曾经击倒过一个以上的Boss，则激活Boss按钮
+                    if (count > 0)
+                    {
+                        BossButton.SetActive(true);
+                        BossIsActive = true;
+                    }
+                }
             }
 
+        }
+    }
+
+    //boss进入战场
+    void BossEnter() {
+        //遍历Boss字符串集合，查找曾经由打出角色卡所击败的Boss，将其置入战场
+        for (int i = 0; i < Boss.Count; i++) {
+            if (Boss[i] == roleField[j - 1].tag) {
+                switch (i + 1) {
+                    case 1:
+                        G1 = true;
+                        count++;
+                        break;
+                    case 2:
+                        G2 = true;
+                        count++;
+                        break;
+                    case 3:
+                        G3 = true;
+                        count++;
+                        break;
+                    case 4:
+                        G4 = true;
+                        count++;
+                        break;
+                    case 5:
+                        G5 = true;
+                        count++;
+                        break;
+                    case 6:
+                        G6 = true;
+                        count++;
+                        break;
+                    case 7:
+                        G7 = true;
+                        count++;
+                        break;
+                    case 8:
+                        G8 = true;
+                        count++;
+                        break;
+                    case 9:
+                        G9 = true;
+                        count++;
+                        break;
+                    case 10:
+                        G10 = true;
+                        count++;
+                        break;
+                    case 11:
+                        G11 = true;
+                        count++;
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
     }
 
@@ -607,6 +701,9 @@ public class gameControl : MonoBehaviour
                     break;
                 case 11:
                     SceneManager.LoadScene("game11", LoadSceneMode.Single);
+                    break;
+                case 12:
+                    SceneManager.LoadScene("game12", LoadSceneMode.Single);
                     break;
                 default:
                     break;

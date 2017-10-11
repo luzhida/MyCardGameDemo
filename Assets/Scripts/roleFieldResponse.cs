@@ -162,6 +162,9 @@ public class roleFieldResponse : MonoBehaviour {
             case 11:
                 game11();
                 break;
+            case 12:
+                game12();
+                break;
             default:
                 break;
         }
@@ -170,11 +173,11 @@ public class roleFieldResponse : MonoBehaviour {
     //根据角色卡与Boss之间的关系，赋予角色区域不同的数字
     void game1()
     {
-        if (this.tag == "I")
+        if (this.tag == "K")
             Relation = 4;
         else if (this.tag == "B")
             Relation = 1;
-        else if (this.tag == "C" || this.tag == "K" || this.tag == "F")
+        else if (this.tag == "C" || this.tag == "H" || this.tag == "F")
             Relation = 2;
         else
             Relation = 3;
@@ -286,6 +289,18 @@ public class roleFieldResponse : MonoBehaviour {
         if (this.tag == "J")
             Relation = 2;
         if (this.tag == "D")
+            Relation = 4;
+        else
+            Relation = 3;
+    }
+
+    void game12()
+    {
+        if (this.tag == "D" || this.tag == "K")
+            Relation = 1;
+        if (this.tag == "L")
+            Relation = 2;
+        if (this.tag == "A" || this.tag == "B")
             Relation = 4;
         else
             Relation = 3;

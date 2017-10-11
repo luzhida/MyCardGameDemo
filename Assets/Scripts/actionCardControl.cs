@@ -212,6 +212,9 @@ public class actionCardControl : MonoBehaviour {
             case 11:
                 SceneManager.LoadScene("game11", LoadSceneMode.Single);
                 break;
+            case 12:
+                SceneManager.LoadScene("game12", LoadSceneMode.Single);
+                break;
             default:
                 break;
         }

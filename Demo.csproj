@@ -87,6 +87,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\BossButton.cs" />
     <Compile Include="Assets\Scripts\ButtonForRule.cs" />
     <Compile Include="Assets\Scripts\CloseButton.cs" />
     <Compile Include="Assets\Scripts\QuitGame.cs" />
