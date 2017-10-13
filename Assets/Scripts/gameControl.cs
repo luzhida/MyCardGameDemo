@@ -263,7 +263,7 @@ public class gameControl : MonoBehaviour
                 break;
             case 6:
                 startSleepyLevel = 50;
-                startAngryLevel = 50;
+                startAngryLevel = 80;
                 break;
             case 7:
                 startSleepyLevel = 20;
@@ -271,11 +271,11 @@ public class gameControl : MonoBehaviour
                 break;
             case 8:
                 startSleepyLevel = 80;
-                startAngryLevel = 50;
+                startAngryLevel = 70;
                 break;
             case 9:
                 startSleepyLevel = 50;
-                startAngryLevel = 50;
+                startAngryLevel = 60;
                 break;
             case 10:
                 startSleepyLevel = 50;
@@ -286,8 +286,8 @@ public class gameControl : MonoBehaviour
                 startAngryLevel = 50;
                 break;
             case 12:
-                startSleepyLevel = 50;
-                startAngryLevel = 50;
+                startSleepyLevel = 80;
+                startAngryLevel = 80;
                 break;
             default:
                 break;
@@ -354,12 +354,17 @@ public class gameControl : MonoBehaviour
                     case 1:
                         sleepyLevelRemaining += 10;
                         break;
-                    /*case 3:
-                        break;*/
+                    case 5:
+                        sleepyLevelRemaining += 8;
+                        break;
                     case 7:
                         sleepyLevelRemaining += 2;
                         break;
                     case 8:
+                        break;
+                    case 10:
+                        sleepyLevelRemaining += 3;
+                        angryLevelRemaining += 3;
                         break;
                     case 11:
                         sleepyLevelRemaining += 2;

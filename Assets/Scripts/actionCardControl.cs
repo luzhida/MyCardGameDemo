@@ -342,12 +342,17 @@ public class actionCardControl : MonoBehaviour {
                     case 1:
                         gameControl.sleepyLevelRemaining += 10;
                         break;
-                    /*case 3:
-                        break;*/
+                    case 5:
+                        gameControl.sleepyLevelRemaining += 8;
+                        break;
                     case 7:
                         gameControl.sleepyLevelRemaining += 2;
                         break;
                     case 8:
+                        break;
+                    case 10:
+                        gameControl.sleepyLevelRemaining += 3;
+                        gameControl.angryLevelRemaining += 3;
                         break;
                     case 11:
                         gameControl.sleepyLevelRemaining += 2;
@@ -1310,7 +1315,8 @@ public class actionCardControl : MonoBehaviour {
             case "C":
                 gameControl.sleepyLevelRemaining -= 10;
                 sleepyVariableQuantity.text = "↓10";
-                angryVariableQuantity.text = "0";
+                gameControl.angryLevelRemaining += 1;
+                angryVariableQuantity.text = "↑1";
                 break;
             case "E":
                 someNum = Random.Range(0, 2);
@@ -1372,8 +1378,8 @@ public class actionCardControl : MonoBehaviour {
         switch (roleField[k].tag)
         {
             case "D":
-                gameControl.sleepyLevelRemaining += 5;
-                sleepyVariableQuantity.text = "↑5";
+                gameControl.sleepyLevelRemaining -= 5;
+                sleepyVariableQuantity.text = "↓5";
                 gameControl.angryLevelRemaining += 1;
                 angryVariableQuantity.text = "↑1";
                 break;
@@ -1430,8 +1436,8 @@ public class actionCardControl : MonoBehaviour {
                 }
                 break;
             case "I":
-                gameControl.sleepyLevelRemaining -= 10;
-                sleepyVariableQuantity.text = "↓10";
+                gameControl.sleepyLevelRemaining += 10;
+                sleepyVariableQuantity.text = "↑10";
                 gameControl.angryLevelRemaining += 20;
                 angryVariableQuantity.text = "↑20";
                 break;
@@ -1503,8 +1509,8 @@ public class actionCardControl : MonoBehaviour {
                 }
                 break;
             case "I":
-                gameControl.sleepyLevelRemaining -= 10;
-                sleepyVariableQuantity.text = "↓10";
+                gameControl.sleepyLevelRemaining += 10;
+                sleepyVariableQuantity.text = "↑10";
                 gameControl.angryLevelRemaining += 20;
                 angryVariableQuantity.text = "↑20";
                 break;
@@ -1571,8 +1577,8 @@ public class actionCardControl : MonoBehaviour {
                 }
                 break;
             case "I":
-                gameControl.sleepyLevelRemaining -= 10;
-                sleepyVariableQuantity.text = "↓10";
+                gameControl.sleepyLevelRemaining += 10;
+                sleepyVariableQuantity.text = "↑10";
                 gameControl.angryLevelRemaining += 20;
                 angryVariableQuantity.text = "↑20";
                 break;
@@ -1640,8 +1646,8 @@ public class actionCardControl : MonoBehaviour {
                 }
                 break;
             case "I":
-                gameControl.sleepyLevelRemaining -= 10;
-                sleepyVariableQuantity.text = "↓10";
+                gameControl.sleepyLevelRemaining += 10;
+                sleepyVariableQuantity.text = "↑10";
                 gameControl.angryLevelRemaining += 20;
                 angryVariableQuantity.text = "↑20";
                 break;
