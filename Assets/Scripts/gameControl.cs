@@ -91,12 +91,15 @@ public class gameControl : MonoBehaviour
                 UseSkillOfL = true;
             }
         });
-        ButtonTest.onClick.AddListener(delegate ()
-         {
-             //被点击就跳关
-             winOrNot = true;
-             winOrLose();
-         });
+        //除了十二关最后一关以外，其余的关卡全添加一个跳关按钮
+        if (gameNum != 12) {
+            ButtonTest.onClick.AddListener(delegate ()
+            {
+                //被点击就跳关
+                winOrNot = true;
+                winOrLose();
+            });
+        }
         if (gameNum == 5)
             j = 5;
         else
